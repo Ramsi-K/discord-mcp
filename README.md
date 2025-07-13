@@ -9,9 +9,21 @@ MCP (Model-Context Protocol) is Anthropic's standardized protocol for connecting
 - Model: Claude API (processes requests with tools/context)
 
 The flow is: Discord Message → Your Bot → MCP Server → Claude API (with tools) → Response back through chain.
-Core Components You'll Need
 
-## Discord Bot (client-side MCP)
+### DB Management for New Members
+
+```text
+(Discord Server)
+↓ events
+[ Discord Bot (cloud) ] ─────► [ Database (shared) ] ◄───── [ MCP Server (local) ]
+^ ↑
+| |
+Welcomes + DB Entry Analysis via Claude
+```
+
+## Core Components You'll Need
+
+### Discord Bot (client-side MCP)
 
 - MCP Server (FastAPI backend)
 - Database (user sessions, memory, context)
