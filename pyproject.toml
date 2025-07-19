@@ -1,0 +1,37 @@
+[project]
+name = "mcp-discord"
+version = "0.1.0"
+description = "Discord MCP server for AI-assisted Discord management"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "mcp[cli]>=1.8.0",
+    "discord.py>=2.3.2",
+    "anthropic>=0.51.0",
+    "prompt-toolkit>=3.0.51",
+    "python-dotenv>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.1",
+    "black>=23.7.0",
+    "isort>=5.12.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["mcp_server", "bot", "core"]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+line_length = 88

@@ -1,81 +1,250 @@
-# mcp-discord
+# MCP Discord
 
-## Understanding MCP Architecture
+A Discord MCP (Model Context Protocol) server for AI-assisted Discord server management.
 
-MCP (Model-Context Protocol) is Anthropic's standardized protocol for connecting AI models with external tools and data sources. Think of it as a bridge between your Discord bot and Claude (or other models), where:
+## Overview
 
-- MCP Client: Your Discord bot (connects to Discord API)
-- MCP Server: Your backend service (manages tools, context, memory)
-- Model: Claude API (processes requests with tools/context)
+This project implements a Discord MCP server that provides tools for AI assistants like Claude to interact with Discord servers. It includes:
 
-The flow is: Discord Message → Your Bot → MCP Server → Claude API (with tools) → Response back through chain.
+- MCP server with Discord-specific tools
+- Simple Discord bot for testing
+- SQLite database for local storage
 
-### DB Management for New Members
+## Getting Started
 
-```text
-(Discord Server)
-↓ events
-[ Discord Bot (cloud) ] ─────► [ Database (shared) ] ◄───── [ MCP Server (local) ]
-^ ↑
-| |
-Welcomes + DB Entry Analysis via Claude
+### Prerequisites
+
+- Python 3.10 or higher
+- UV package manager (`pip install uv`)
+- Discord bot token (create one at [Discord Developer Portal](https://discord.com/developers/applications))
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/yourusername/mcp-discord.git
+   cd mcp-discord
+   ```
+
+2. Create a virtual environment and install dependencies:
+
+   ```bash
+   uv venv
+   uv pip install -e .
+   ```
+
+3. Set up your Discord bot token:
+
+   ```bash
+   # On Windows
+   set DISCORD_TOKEN=your_token_here
+
+   # On Linux/macOS
+   export DISCORD_TOKEN=your_token_here
+   ```
+
+### Running the MCP Server
+
+Run the MCP server:
+
+```bash
+uv run mcp_server/server.py
 ```
 
-## Core Components You'll Need
+### Running the Discord Bot
 
-### Discord Bot (client-side MCP)
+Run the Discord bot in a separate terminal:
 
-- MCP Server (FastAPI backend)
-- Database (user sessions, memory, context)
-- Tool Registry (Discord-specific tools)
-- Context Manager (conversation memory)
-- Model Interface (Claude API integration)
+```bash
+uv run bot/bot.py
+```
 
-## Step-by-Step Development Plan
+### Testing with the Client
 
-### Phase 1: Local MCP Server Foundation
+Test the MCP server with the test client:
 
-Start with a simple FastAPI server that implements MCP protocol locally.
+```bash
+uv run client.py
+```
 
-### Phase 2: Discord Bot Integration
+## Project Structure
 
-Connect your Discord bot to the MCP server.
+```
+mcp-discord/
+├── mcp_server/         # MCP server implementation
+│   ├── __init__.py
+│   ├── server.py       # Main FastMCP server
+│   └── tools/          # Tool implementations
+│       ├── __init__.py
+│       └── message_tools.py  # Simple message tools
+├── bot/                # Discord bot implementation
+│   ├── __init__.py
+│   └── bot.py          # Simple Discord bot
+├── client.py           # Test client
+├── pyproject.toml      # Project configuration
+└── README.md           # Project documentation
+```
 
-### Phase 3: Tool System
+## Available Tools
 
-Add Discord-specific tools (user lookup, channel management, etc.).
+Currently implemented tools:
 
-### Phase 4: Memory & Context
+- `discord_send_message`: Send a message to a Discord channel
+- `discord_get_channel_info`: Get information about a Discord channel
 
-Implement persistent conversation memory.
+## Connecting to Kiro IDE
 
-### Phase 5: Production & Scaling
+To use this MCP server with Kiro IDE, add the following to your `.kiro/settings/mcp.json`:
 
-Deploy with proper hosting, monitoring, and scaling.
+```json
+{
+  "mcpServers": {
+    "discord-tools": {
+      "command": "uv",
+      "args": ["run", "path/to/mcp-discord/mcp_server/server.py"],
+      "disabled": false
+    }
+  }
+}
+```
 
-## Technology Stack Recommendations
+## Development
 
-### Backend Framework: FastAPI over Flask
+### Adding New Tools
 
-- Better async support (crucial for Discord)
-- Automatic API documentation
-- Built-in validation with Pydantic
-- WebSocket support for real-time features
+To add new tools, create a new file in the `mcp_server/tools/` directory and register your tools with the MCP server.
 
-### Database: PostgreSQL over SQLite
+Example:
 
-- Better concurrency for multiple Discord servers
-- JSON columns for flexible context storage
-- Proper indexing for conversation history
+```python
+async def register_my_tools(mcp: FastMCP):
+    @mcp.tool(name="my_tool")
+    async def my_tool(param: str, *, ctx: Context):
+        return {"result": f"Processed {param}"}
+```
 
-### Model Integration: Direct Anthropic API over LangChain
+Then import and register your tools in `mcp_server/server.py`.
 
-- More control over MCP implementation
-- Better error handling
-- Cleaner abstraction for your use case
+### Running Tests
 
-### Hosting: Railway or Fly.io over traditional VPS
+```bash
+uv pip install -e ".[dev]"
+pytest
+```
 
-- Easy deployment
-- Built-in scaling
-- Good free tiers for development
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+# MCP Chat
+
+MCP Chat is a command-line interface application that enables interactive chat capabilities with AI models through the Anthropic API. The application supports document retrieval, command-based prompts, and extensible tool integrations via the MCP (Model Control Protocol) architecture.
+
+## Prerequisites
+
+- Python 3.9+
+- Anthropic API Key
+
+## Setup
+
+### Step 1: Configure the environment variables
+
+1. Create or edit the `.env` file in the project root and verify that the following variables are set correctly:
+
+```
+ANTHROPIC_API_KEY=""  # Enter your Anthropic API secret key
+```
+
+### Step 2: Install dependencies
+
+#### Option 1: Setup with uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver.
+
+1. Install uv, if not already installed:
+
+```bash
+pip install uv
+```
+
+2. Create and activate a virtual environment:
+
+```bash
+uv venv
+source .venv/Scripts/activate  # On Windows: .venv\Scripts\activate
+```
+
+3. Install dependencies:
+
+```bash
+uv pip install -e .
+```
+
+4. Run the project
+
+```bash
+uv run main.py
+```
+
+#### Option 2: Setup without uv
+
+1. Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install anthropic python-dotenv prompt-toolkit "mcp[cli]==1.8.0"
+```
+
+3. Run the project
+
+```bash
+python main.py
+```
+
+## Usage
+
+### Basic Interaction
+
+Simply type your message and press Enter to chat with the model.
+
+### Document Retrieval
+
+Use the @ symbol followed by a document ID to include document content in your query:
+
+```
+> Tell me about @deposition.md
+```
+
+### Commands
+
+Use the / prefix to execute commands defined in the MCP server:
+
+```
+> /summarize deposition.md
+```
+
+Commands will auto-complete when you press Tab.
+
+## Development
+
+### Adding New Documents
+
+Edit the `mcp_server.py` file to add new documents to the `docs` dictionary.
+
+### Implementing MCP Features
+
+To fully implement the MCP features:
+
+1. Complete the TODOs in `mcp_server.py`
+2. Implement the missing functionality in `mcp_client.py`
+
+### Linting and Typing Check
+
+There are no lint or type checks implemented.
