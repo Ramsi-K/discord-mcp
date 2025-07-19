@@ -65,10 +65,10 @@ async def main():
         bot_task = None
 
     async with AsyncExitStack() as stack:
-        doc_client = await stack.enter_async_context(
+        discord_client = await stack.enter_async_context(
             MCPClient(command=command, args=args)
         )
-        clients["doc_client"] = doc_client
+        clients["discord_client"] = discord_client
 
         for i, server_script in enumerate(server_scripts):
             client_id = f"client_{i}_{server_script}"
@@ -84,7 +84,7 @@ async def main():
         os.environ["DISCORD_BOT_MODULE"] = "__main__"
 
         chat = CliChat(
-            doc_client=doc_client,
+            discord_client=discord_client,
             clients=clients,
             claude_service=claude_service,
         )

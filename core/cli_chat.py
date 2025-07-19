@@ -10,18 +10,18 @@ from mcp_client import MCPClient
 class CliChat(Chat):
     def __init__(
         self,
-        doc_client: MCPClient,
+        discord_client: MCPClient,
         clients: dict[str, MCPClient],
         claude_service: Claude,
     ):
         super().__init__(clients=clients, claude_service=claude_service)
 
-        self.doc_client: MCPClient = doc_client
+        self.discord_client: MCPClient = discord_client
 
     async def list_prompts(self) -> list[Prompt]:
-        # Try to get prompts from the doc_client, but handle if there are none
+        # Try to get prompts from the discord_client, but handle if there are none
         try:
-            return await self.doc_client.list_prompts()
+            return await self.discord_client.list_prompts()
         except Exception as e:
             print(f"Warning: Could not list prompts: {e}")
             return []
@@ -29,22 +29,22 @@ class CliChat(Chat):
     async def list_docs_ids(self) -> list[str]:
         # This method is from the old project and may not be applicable
         # Try to get documents, but return empty list if not available
-        try:
-            return await self.doc_client.read_resource("docs://documents")
-        except Exception as e:
-            print(f"Warning: Could not list documents: {e}")
-            return []
+        # try:
+        #     return await self.discord_client.read_resource("docs://documents")
+        # except Exception as e:
+        #     print(f"Warning: Could not list documents: {e}")
+        return []
 
     async def get_doc_content(self, doc_id: str) -> str:
         # This method is from the old project and may not be applicable
         # Try to get document content, but return empty string if not available
-        try:
-            return await self.doc_client.read_resource(
-                f"docs://documents/{doc_id}"
-            )
-        except Exception as e:
-            print(f"Warning: Could not get document content: {e}")
-            return ""
+        # try:
+        #     return await self.discord_client.read_resource(
+        #         f"docs://documents/{doc_id}"
+        #     )
+        # except Exception as e:
+        #     print(f"Warning: Could not get document content: {e}")
+        return ""
 
     async def get_prompt(
         self, command: str, doc_id: str
@@ -52,7 +52,7 @@ class CliChat(Chat):
         # This method is from the old project and may not be applicable
         # Try to get prompt, but handle if not available
         try:
-            return await self.doc_client.get_prompt(
+            return await self.discord_client.get_prompt(
                 command, {"doc_id": doc_id}
             )
         except Exception as e:
@@ -60,20 +60,21 @@ class CliChat(Chat):
             return []
 
     async def _extract_resources(self, query: str) -> str:
-        mentions = [word[1:] for word in query.split() if word.startswith("@")]
+        # mentions = [word[1:] for word in query.split() if word.startswith("@")]
 
-        doc_ids = await self.list_docs_ids()
-        mentioned_docs: list[Tuple[str, str]] = []
+        # doc_ids = await self.list_docs_ids()
+        # mentioned_docs: list[Tuple[str, str]] = []
 
-        for doc_id in doc_ids:
-            if doc_id in mentions:
-                content = await self.get_doc_content(doc_id)
-                mentioned_docs.append((doc_id, content))
+        # for doc_id in doc_ids:
+        #     if doc_id in mentions:
+        #         content = await self.get_doc_content(doc_id)
+        #         mentioned_docs.append((doc_id, content))
 
-        return "".join(
-            f'\n<document id="{doc_id}">\n{content}\n</document>\n'
-            for doc_id, content in mentioned_docs
-        )
+        # return "".join(
+        #     f'\n<document id="{doc_id}">\n{content}\n</document>\n'
+        #     for doc_id, content in mentioned_docs
+        # )
+        return ""
 
     async def _process_command(self, query: str) -> bool:
         if not query.startswith("/"):
@@ -82,20 +83,27 @@ class CliChat(Chat):
         words = query.split()
         command = words[0].replace("/", "")
 
-        messages = await self.doc_client.get_prompt(
-            command, {"doc_id": words[1]}
-        )
+        try:
 
-        self.messages += convert_prompt_messages_to_message_params(messages)
-        return True
+            messages = await self.discord_client.get_prompt(
+                command, {"doc_id": words[1]}
+            )
+
+            self.messages += convert_prompt_messages_to_message_params(
+                messages
+            )
+            return True
+        except Exception as e:
+            print(f"Warning: Could not process command: {e}")
+            return False
 
     async def _process_query(self, query: str):
         # Check if this is a command first
         if await self._process_command(query):
             return
 
-        # Try to extract resources (keeping for compatibility)
-        added_resources = await self._extract_resources(query)
+        # # Try to extract resources (keeping for compatibility)
+        # added_resources = await self._extract_resources(query)
 
         # Check if this is a Discord-specific command
         discord_commands = {
