@@ -63,6 +63,30 @@ class DiscordMCPBot(commands.Bot):
             logger.error(f"Error sending message: {e}")
             return {"success": False, "error": str(e)}
 
+    async def get_channel_info(self, channel_id):
+        """Get information about a channel directly."""
+        logger.info(f"Getting channel info for channel {channel_id}")
+        try:
+            # Get the channel
+            channel = self.get_channel(int(channel_id))
+            if not channel:
+                channel = await self.fetch_channel(int(channel_id))
+
+            # Return channel info
+            return {
+                "success": True,
+                "id": str(channel.id),
+                "name": channel.name,
+                "type": str(channel.type),
+                "topic": getattr(channel, "topic", None),
+                "nsfw": getattr(channel, "nsfw", False),
+                "position": getattr(channel, "position", 0),
+                "created_at": channel.created_at.isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting channel info: {e}")
+            return {"success": False, "error": str(e)}
+
     async def setup_hook(self):
         """Set up the bot when it's starting."""
         logger.info("Setting up Discord bot...")

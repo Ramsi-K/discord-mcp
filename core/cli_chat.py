@@ -219,15 +219,30 @@ class CliChat(Chat):
             elif command == "discord_get_channel_info" and len(words) >= 2:
                 channel_id = words[1]
 
-                # Call the Discord tool
-                for client_name, client in self.clients.items():
-                    try:
-                        tools = await client.list_tools()
-                        tool_names = [tool.name for tool in tools]
+                print(
+                    f"Processing channel info command: channel_id={channel_id}"
+                )
 
-                        if command in tool_names:
-                            result = await client.call_tool(
-                                command, {"channel_id": channel_id}
+                # First try to use the direct method on the Discord bot
+                discord_bot = self.clients.get("discord_bot")
+                if discord_bot and hasattr(discord_bot, "get_channel_info"):
+                    print(
+                        f"Using direct method on Discord bot for channel info"
+                    )
+                    try:
+                        result = await discord_bot.get_channel_info(channel_id)
+                        print(f"Direct channel info result: {result}")
+
+                        if result.get("success", False):
+                            # Format the channel info nicely
+                            channel_info = (
+                                f"Channel ID: {result['id']}\n"
+                                f"Name: {result['name']}\n"
+                                f"Type: {result['type']}\n"
+                                f"Topic: {result['topic'] or 'No topic'}\n"
+                                f"NSFW: {result['nsfw']}\n"
+                                f"Position: {result['position']}\n"
+                                f"Created at: {result['created_at']}"
                             )
 
                             # Add the result to the conversation
@@ -240,12 +255,76 @@ class CliChat(Chat):
                             self.messages.append(
                                 {
                                     "role": "assistant",
-                                    "content": f"Channel information:\n{result.result}",
+                                    "content": f"Channel information:\n{channel_info}",
+                                }
+                            )
+                            return
+                        else:
+                            print(
+                                f"Direct channel info failed: {result.get('error', 'Unknown error')}"
+                            )
+                    except Exception as e:
+                        print(f"Error getting channel info: {e}")
+                        import traceback
+
+                        print(f"Traceback: {traceback.format_exc()}")
+
+                # If direct method failed or not available, try using the MCP tools
+                print(f"Available clients: {list(self.clients.keys())}")
+                for client_name, client in self.clients.items():
+                    try:
+                        if not hasattr(client, "list_tools"):
+                            print(
+                                f"Client {client_name} doesn't have list_tools method, skipping"
+                            )
+                            continue
+
+                        print(f"Getting tools for client {client_name}")
+                        tools = await client.list_tools()
+                        tool_names = [tool.name for tool in tools]
+                        print(
+                            f"Available tools for client {client_name}: {tool_names}"
+                        )
+
+                        if command in tool_names:
+                            print(
+                                f"Found tool {command} in client {client_name}, calling it"
+                            )
+                            result = await client.call_tool(
+                                command, {"channel_id": channel_id}
+                            )
+                            print(f"Tool call result: {result}")
+
+                            # Extract the content from the result
+                            content = "Channel information not available"
+                            if hasattr(result, "content") and result.content:
+                                content_items = [
+                                    item.text
+                                    for item in result.content
+                                    if hasattr(item, "text")
+                                ]
+                                if content_items:
+                                    content = "\n".join(content_items)
+
+                            # Add the result to the conversation
+                            self.messages.append(
+                                {
+                                    "role": "user",
+                                    "content": f"Get information about channel {channel_id}",
+                                }
+                            )
+                            self.messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": f"Channel information:\n{content}",
                                 }
                             )
                             return
                     except Exception as e:
                         print(f"Error calling Discord tool: {e}")
+                        import traceback
+
+                        print(f"Traceback: {traceback.format_exc()}")
 
         # If not a Discord command, process as a regular query
         prompt = f"""
