@@ -97,7 +97,7 @@ async def main():
         finally:
             # Ensure bot is closed properly when CLI exits
             if not bot_task.done():
-                discord_bot.close()
+                await discord_bot.close()  # Await the close coroutine
                 await bot_task
 
 

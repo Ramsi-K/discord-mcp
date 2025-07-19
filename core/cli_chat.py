@@ -103,7 +103,7 @@ class CliChat(Chat):
             return
 
         # # Try to extract resources (keeping for compatibility)
-        # added_resources = await self._extract_resources(query)
+        added_resources = await self._extract_resources(query)
 
         # Check if this is a Discord-specific command
         discord_commands = {
