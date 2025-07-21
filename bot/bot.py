@@ -140,6 +140,11 @@ class BasicCommands(commands.Cog):
 
 async def run_bot():
     """Run the Discord bot."""
+    # Load environment variables from .env file
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
     # Get the token from environment variable
     token = os.environ.get("DISCORD_TOKEN")
     if not token:
