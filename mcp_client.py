@@ -1,4 +1,5 @@
 import sys
+import os
 import asyncio
 import json
 from pydantic import AnyUrl
@@ -17,9 +18,13 @@ class MCPClient:
     ):
         self._command = command
         self._args = args
-        self._env = env
+        self._env = env or {}
         self._session: Optional[ClientSession] = None
         self._exit_stack: AsyncExitStack = AsyncExitStack()
+        
+        # Set default environment variables if not provided
+        if "MCP_DISCORD_DB_PATH" not in self._env and "MCP_DISCORD_DB_PATH" in os.environ:
+            self._env["MCP_DISCORD_DB_PATH"] = os.environ["MCP_DISCORD_DB_PATH"]
 
     async def connect(self):
         server_params = StdioServerParameters(
@@ -97,13 +102,30 @@ class MCPClient:
 
 # For testing
 async def main():
+    # Set up environment variables for testing
+    env = {}
+    
+    # Use environment variable for database path if provided
+    db_path = os.getenv("MCP_DISCORD_DB_PATH")
+    if db_path:
+        env["MCP_DISCORD_DB_PATH"] = db_path
+    
     async with MCPClient(
         # If using Python without UV, update command to 'python' and remove "run" from args.
         command="uv",
         args=["run", "mcp_server/server.py"],
+        env=env,
     ) as _client:
-        result = await _client.list_tools()
-        print("Available tools:", result)
+        # Start the bot
+        await _client.call_tool("discord_start_bot", {})
+        
+        # List available tools
+        tools = await _client.list_tools()
+        print("Available tools:", [tool.name for tool in tools])
+        
+        # Get bot status
+        status = await _client.call_tool("discord_bot_status", {})
+        print("Bot status:", status)
 
 
 if __name__ == "__main__":
