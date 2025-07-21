@@ -28,6 +28,12 @@
     - Create connection between bot and MCP server
     - _Requirements: 1.1, 2.1_
 
+  - [ ] 2.4 Implement Server Registry
+    - Create database schema for servers, channels, and roles
+    - Implement entity resolution for natural language references
+    - Add alias generation for entities
+    - _Requirements: 1.1, 2.1, 6.1_
+
 - [ ] 3. Implement member management tools
 
   - [ ] 3.1 Create member export tool
@@ -94,6 +100,12 @@
     - Create discord_close_thread tool
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
+  - [ ] 4.5 Implement context cache tools
+    - Create discord_set_context_note tool
+    - Implement discord_get_context_summary tool
+    - Add discord_store_conversation_memory tool
+    - _Requirements: 2.1, 2.2_
+
 - [ ] 5. Implement role management tools
 
   - [ ] 5.1 Create role listing tool
@@ -112,6 +124,12 @@
     - Implement discord_assign_role tool
     - Create discord_bulk_assign_role_by_filter tool
     - Add filtering by channel activity and reactions
+    - _Requirements: 3.2, 3.3_
+
+  - [ ] 5.4 Implement role management by participation
+    - Create discord_assign_role_by_participation tool
+    - Add support for reaction-based role assignment
+    - Implement thread participation tracking
     - _Requirements: 3.2, 3.3_
 
 - [ ] 6. Implement server management tools
@@ -160,6 +178,12 @@
     - Implement detailed error reporting
     - _Requirements: 5.2, 5.4_
 
+  - [ ] 7.5 Implement system info tools
+    - Create discord_system_info tool
+    - Add discord_error_logs tool
+    - Implement discord_validate_permissions tool
+    - _Requirements: 5.2, 5.4_
+
 - [ ] 8. Implement prompt system
 
   - [ ] 8.1 Create channel summarization prompt
@@ -185,6 +209,11 @@
     - Add formatting options by importance level
     - _Requirements: 2.1_
 
+  - [ ] 8.5 Implement event description generator
+    - Create create_event_description prompt
+    - Add support for different event types
+    - _Requirements: 2.1_
+
 - [ ] 9. Implement security and permission system
 
   - [ ] 9.1 Create permission verification system
@@ -204,22 +233,50 @@
     - Add sanitization for user-provided content
     - _Requirements: 6.4_
 
-- [ ] 10. Create documentation and deployment
+- [ ] 10. Implement message styling system
 
-  - [ ] 10.1 Write comprehensive documentation
+  - [ ] 10.1 Create style definition system
+    - Implement style storage in database
+    - Add style templates for common message types
+    - Create style context mapping
+    - _Requirements: 2.1, 2.3_
+
+  - [ ] 10.2 Implement style application
+    - Create style template filling
+    - Add permission checking for formatting
+    - Implement preview generation
+    - _Requirements: 2.1, 2.3_
+
+  - [ ] 10.3 Create style management tools
+    - Implement discord_create_style tool
+    - Add discord_import_export_style tool
+    - Create discord_learn_style_from_example tool
+    - _Requirements: 2.1, 2.3_
+
+- [ ] 11. Create documentation and deployment
+
+  - [ ] 11.1 Write comprehensive documentation
 
     - Create tool reference documentation
     - Add usage examples and tutorials
     - _Requirements: All_
 
-  - [ ] 10.2 Implement deployment scripts
+  - [ ] 11.2 Implement deployment scripts
 
     - Create Docker configuration
     - Add environment variable management
     - _Requirements: All_
 
-  - [ ] 10.3 Set up monitoring and logging
+  - [ ] 11.3 Set up monitoring and logging
     - Implement health check endpoints
     - Add structured logging
     - Create dashboard for monitoring
     - _Requirements: 5.1, 5.4_
+
+## Future Tasks (Phase 2+)
+
+- [ ] Implement semantic matching with vector database
+- [ ] Create automated onboarding system
+- [ ] Add advanced automation with scheduled tasks and triggers
+- [ ] Implement advanced analytics with visualization tools
+- [ ] Add member engagement scoring system
