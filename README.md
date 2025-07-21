@@ -44,6 +44,16 @@ This project implements a Discord MCP server that provides tools for AI assistan
    export DISCORD_TOKEN=your_token_here
    ```
 
+4. (Optional) Set the database path:
+
+   ```bash
+   # On Windows
+   set MCP_DISCORD_DB_PATH=C:\path\to\server_registry.db
+
+   # On Linux/macOS
+   export MCP_DISCORD_DB_PATH=/path/to/server_registry.db
+   ```
+
 ### Running the MCP Server
 
 Run the MCP server:
@@ -54,11 +64,7 @@ uv run mcp_server/server.py
 
 ### Running the Discord Bot
 
-Run the Discord bot in a separate terminal:
-
-```bash
-uv run bot/bot.py
-```
+The Discord bot is started automatically by the MCP server when needed. You don't need to run it separately.
 
 ### Testing with the Client
 
@@ -75,9 +81,17 @@ mcp-discord/
 ├── mcp_server/         # MCP server implementation
 │   ├── __init__.py
 │   ├── server.py       # Main FastMCP server
+│   ├── server_registry_wrapper.py  # Wrapper for server registry
 │   └── tools/          # Tool implementations
 │       ├── __init__.py
-│       └── message_tools.py  # Simple message tools
+│       └── server_registry_tools.py  # Server registry tools
+├── server_registry/    # Server registry implementation
+│   ├── __init__.py
+│   ├── api.py          # API interfaces
+│   ├── init.py         # Registry initialization
+│   ├── models/         # Data models
+│   ├── services/       # Business logic
+│   └── db/             # Database access
 ├── bot/                # Discord bot implementation
 │   ├── __init__.py
 │   └── bot.py          # Simple Discord bot
@@ -88,10 +102,33 @@ mcp-discord/
 
 ## Available Tools
 
-Currently implemented tools:
+The MCP server provides the following tools:
+
+### Discord Communication
 
 - `discord_send_message`: Send a message to a Discord channel
 - `discord_get_channel_info`: Get information about a Discord channel
+- `discord_list_servers`: List all servers the bot is in
+- `discord_bot_status`: Get the current status of the Discord bot
+- `discord_list_channels`: List all channels in a Discord server
+- `discord_list_roles`: List all roles in a Discord server
+
+### Server Registry
+
+- `registry_update`: Update the server registry with current Discord data
+- `registry_get_server`: Get a server by name, alias, or ID
+- `registry_get_channel`: Get a channel by name, alias, or ID
+- `registry_get_role`: Get a role by name, alias, or ID
+- `registry_track_context`: Track an entity in the conversation context
+
+## MCP Architecture
+
+This project follows the Model Context Protocol (MCP) architecture:
+
+1. **Client-side**: The LLM (e.g., Claude) handles natural language understanding and intent detection
+2. **Server-side**: The MCP server provides tools that the client can call directly
+
+The server includes an entity resolver that helps convert natural language references (like "general channel") to Discord IDs. This allows the client to use either direct IDs or human-readable names when calling tools.
 
 ## Connecting to Kiro IDE
 
@@ -108,6 +145,19 @@ To use this MCP server with Kiro IDE, add the following to your `.kiro/settings/
   }
 }
 ```
+
+## Features
+
+### Server Registry
+
+The Server Registry maintains information about Discord servers, channels, and roles. It provides:
+
+- Persistent storage of server data in SQLite
+- Natural language references to servers, channels, and roles
+- Context tracking for conversation history
+- Permission checking for bot operations
+
+See [Server Registry Documentation](server_registry/README.md) for more details.
 
 ## Development
 
@@ -136,115 +186,3 @@ pytest
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-# MCP Chat
-
-MCP Chat is a command-line interface application that enables interactive chat capabilities with AI models through the Anthropic API. The application supports document retrieval, command-based prompts, and extensible tool integrations via the MCP (Model Control Protocol) architecture.
-
-## Prerequisites
-
-- Python 3.9+
-- Anthropic API Key
-
-## Setup
-
-### Step 1: Configure the environment variables
-
-1. Create or edit the `.env` file in the project root and verify that the following variables are set correctly:
-
-```
-ANTHROPIC_API_KEY=""  # Enter your Anthropic API secret key
-```
-
-### Step 2: Install dependencies
-
-#### Option 1: Setup with uv (Recommended)
-
-[uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver.
-
-1. Install uv, if not already installed:
-
-```bash
-pip install uv
-```
-
-2. Create and activate a virtual environment:
-
-```bash
-uv venv
-source .venv/Scripts/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. Install dependencies:
-
-```bash
-uv pip install -e .
-```
-
-4. Run the project
-
-```bash
-uv run main.py
-```
-
-#### Option 2: Setup without uv
-
-1. Create and activate a virtual environment:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-2. Install dependencies:
-
-```bash
-pip install anthropic python-dotenv prompt-toolkit "mcp[cli]==1.8.0"
-```
-
-3. Run the project
-
-```bash
-python main.py
-```
-
-## Usage
-
-### Basic Interaction
-
-Simply type your message and press Enter to chat with the model.
-
-### Document Retrieval
-
-Use the @ symbol followed by a document ID to include document content in your query:
-
-```
-> Tell me about @deposition.md
-```
-
-### Commands
-
-Use the / prefix to execute commands defined in the MCP server:
-
-```
-> /summarize deposition.md
-```
-
-Commands will auto-complete when you press Tab.
-
-## Development
-
-### Adding New Documents
-
-Edit the `mcp_server.py` file to add new documents to the `docs` dictionary.
-
-### Implementing MCP Features
-
-To fully implement the MCP features:
-
-1. Complete the TODOs in `mcp_server.py`
-2. Implement the missing functionality in `mcp_client.py`
-
-### Linting and Typing Check
-
-There are no lint or type checks implemented.
