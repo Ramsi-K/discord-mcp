@@ -6,15 +6,17 @@ import logging
 import asyncio
 import os
 from functools import wraps
+from typing import Dict, List, Any, Optional
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-# Global variable to hold the bot instance
+# Global variables
 discord_bot = None
 bot_task = None
+registry = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,7 +56,7 @@ def require_discord_bot(func):
 
 async def ensure_bot_running(token: str = "") -> dict:
     """Ensure the Discord bot is running and connected."""
-    global discord_bot, bot_task
+    global discord_bot, bot_task, registry
 
     if not token:
         token = os.getenv("DISCORD_TOKEN", "")
@@ -98,6 +100,15 @@ async def ensure_bot_running(token: str = "") -> dict:
         if not discord_bot.user:
             return {"error": "Bot failed to connect within timeout period"}
 
+        # Initialize server registry if not already done
+        if not registry:
+            from mcp_server.server_registry_wrapper import ServerRegistry
+
+            registry = ServerRegistry(discord_bot)
+            init_success = await registry.initialize()
+            if not init_success:
+                logger.warning("Failed to initialize server registry")
+
         return {
             "success": True,
             "message": "Discord bot started successfully",
@@ -130,12 +141,25 @@ async def discord_send_message(
     channel_id: str,
     message: str,
     mention_everyone: bool = False,
+    server_id: str = None,
     token: str = "",
 ):
-    """Send a message to a Discord channel, starting bot if needed."""
+    """Send a message to a Discord channel, starting bot if needed.
+    
+    The channel_id can be a channel name, alias, or ID. If it's a name or alias,
+    it will be resolved to an ID using the server registry.
+    """
     global discord_bot
 
     try:
+        # Resolve channel ID if it's not a numeric ID
+        if not channel_id.isdigit():
+            resolver = await get_entity_resolver()
+            if resolver:
+                resolved_id = await resolver.resolve_channel(channel_id, server_id)
+                logger.info(f"Resolved channel '{channel_id}' to ID '{resolved_id}'")
+                channel_id = resolved_id
+        
         logger.info(f"Sending message to channel {channel_id}")
         return await discord_bot.send_direct_message(
             channel_id, message, mention_everyone
@@ -150,11 +174,23 @@ async def discord_send_message(
     description="Get information about a Discord channel",
 )
 @require_discord_bot
-async def discord_get_channel_info(channel_id: str, token: str = ""):
-    """Get information about a Discord channel, starting bot if needed."""
+async def discord_get_channel_info(channel_id: str, server_id: str = None, token: str = ""):
+    """Get information about a Discord channel, starting bot if needed.
+    
+    The channel_id can be a channel name, alias, or ID. If it's a name or alias,
+    it will be resolved to an ID using the server registry.
+    """
     global discord_bot
 
     try:
+        # Resolve channel ID if it's not a numeric ID
+        if not channel_id.isdigit():
+            resolver = await get_entity_resolver()
+            if resolver:
+                resolved_id = await resolver.resolve_channel(channel_id, server_id)
+                logger.info(f"Resolved channel '{channel_id}' to ID '{resolved_id}'")
+                channel_id = resolved_id
+                
         logger.info(f"Getting info for channel {channel_id}")
         return await discord_bot.get_channel_info(channel_id)
     except Exception as e:
@@ -162,30 +198,7 @@ async def discord_get_channel_info(channel_id: str, token: str = ""):
         return {"error": f"Error getting channel info: {str(e)}"}
 
 
-@mcp.tool(
-    name="discord_list_servers",
-    description="List all servers the bot is in",
-)
-@require_discord_bot
-async def discord_list_servers(token: str = ""):
-    """List all servers the bot is in, starting bot if needed."""
-    global discord_bot
-
-    try:
-        logger.info("Listing servers")
-        servers = []
-        for guild in discord_bot.guilds:
-            servers.append(
-                {
-                    "id": str(guild.id),
-                    "name": guild.name,
-                    "member_count": guild.member_count,
-                }
-            )
-        return {"servers": servers, "total_count": len(servers)}
-    except Exception as e:
-        logger.error(f"Error listing servers: {str(e)}")
-        return {"error": f"Error listing servers: {str(e)}"}
+# discord_list_servers tool removed - using server_registry_tools.list_servers instead
 
 
 @mcp.tool(
@@ -222,5 +235,248 @@ async def discord_bot_status():
     }
 
 
+# Registry management tools
+@mcp.tool(
+    name="registry_get_server",
+    description="Get a server by name, alias, or ID",
+)
+@require_discord_bot
+async def registry_get_server(reference: str, user_id: str = "system"):
+    """Get a server by name, alias, or ID."""
+    global registry
+
+    if not registry:
+        return {"error": "Server registry not initialized"}
+
+    try:
+        # Set the current user for context tracking
+        registry.set_current_user(user_id)
+
+        # Get the server
+        server = registry.api.get_server(reference)
+        if server:
+            # Track this server in context
+            registry.track_context("server", server.id)
+            
+            return {
+                "success": True,
+                "server": {
+                    "id": server.id,
+                    "discord_id": server.discord_id,
+                    "name": server.name,
+                    "description": server.description,
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Server '{reference}' not found"
+            }
+    except Exception as e:
+        logger.error(f"Error getting server: {str(e)}")
+        return {"error": f"Error getting server: {str(e)}"}
+
+
+@mcp.tool(
+    name="registry_get_channel",
+    description="Get a channel by name, alias, or ID",
+)
+@require_discord_bot
+async def registry_get_channel(
+    reference: str, 
+    server_reference: str = None, 
+    user_id: str = "system"
+):
+    """Get a channel by name, alias, or ID."""
+    global registry
+
+    if not registry:
+        return {"error": "Server registry not initialized"}
+
+    try:
+        # Set the current user for context tracking
+        registry.set_current_user(user_id)
+
+        # Get the channel
+        channel = registry.api.get_channel(reference, server_reference)
+        if channel:
+            # Track this channel in context
+            registry.track_context("channel", channel.id)
+            
+            return {
+                "success": True,
+                "channel": {
+                    "id": channel.id,
+                    "discord_id": channel.discord_id,
+                    "name": channel.name,
+                    "type": channel.type.value if hasattr(channel.type, "value") else str(channel.type),
+                    "server_id": channel.server_id,
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Channel '{reference}' not found"
+            }
+    except Exception as e:
+        logger.error(f"Error getting channel: {str(e)}")
+        return {"error": f"Error getting channel: {str(e)}"}
+
+
+@mcp.tool(
+    name="registry_get_role",
+    description="Get a role by name, alias, or ID",
+)
+@require_discord_bot
+async def registry_get_role(
+    reference: str, 
+    server_reference: str = None, 
+    user_id: str = "system"
+):
+    """Get a role by name, alias, or ID."""
+    global registry
+
+    if not registry:
+        return {"error": "Server registry not initialized"}
+
+    try:
+        # Set the current user for context tracking
+        registry.set_current_user(user_id)
+
+        # Get the role
+        role = registry.api.get_role(reference, server_reference)
+        if role:
+            # Track this role in context
+            registry.track_context("role", role.id)
+            
+            return {
+                "success": True,
+                "role": {
+                    "id": role.id,
+                    "discord_id": role.discord_id,
+                    "name": role.name,
+                    "color": role.color,
+                    "server_id": role.server_id,
+                    "mentionable": role.mentionable,
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Role '{reference}' not found"
+            }
+    except Exception as e:
+        logger.error(f"Error getting role: {str(e)}")
+        return {"error": f"Error getting role: {str(e)}"}
+
+
+@mcp.tool(
+    name="registry_update",
+    description="Update the server registry with current Discord data",
+)
+@require_discord_bot
+async def registry_update(server_id: str = ""):
+    """Update the server registry with current Discord data."""
+    global registry
+
+    if not registry:
+        return {"error": "Server registry not initialized"}
+
+    try:
+        result = await registry.update_registry(
+            server_id if server_id else None
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error updating registry: {str(e)}")
+        return {"error": f"Error updating registry: {str(e)}"}
+
+
+@mcp.tool(
+    name="registry_track_context",
+    description="Track an entity in the conversation context",
+)
+@require_discord_bot
+async def registry_track_context(
+    entity_type: str,
+    entity_id: str,
+    user_id: str = "system",
+):
+    """Track an entity in the conversation context."""
+    global registry
+
+    if not registry:
+        return {"error": "Server registry not initialized"}
+
+    try:
+        # Set the current user for context tracking
+        registry.set_current_user(user_id)
+
+        # Track the entity
+        success = registry.track_context(entity_type, int(entity_id))
+
+        if success:
+            return {
+                "success": True,
+                "message": f"Entity {entity_type}:{entity_id} tracked in context for user {user_id}",
+            }
+        else:
+            return {
+                "error": f"Failed to track entity {entity_type}:{entity_id} in context"
+            }
+    except Exception as e:
+        logger.error(f"Error tracking context: {str(e)}")
+        return {"error": f"Error tracking context: {str(e)}"}
+
+
+# discord_list_channels tool removed - using server_registry_tools.get_server_channels instead
+
+
+# discord_list_roles tool removed - using server_registry_tools.get_server_roles instead
+
+
+# Register additional tools from the tools module
+async def register_additional_tools():
+    try:
+        # Import tools
+        from mcp_server.tools import register_tools
+        from mcp_server.tools.server_registry_tools import (
+            list_servers,
+            get_server_channels,
+            get_server_roles,
+        )
+        
+        # Register standard tools
+        await register_tools(mcp)
+        
+        # Register server registry tools directly
+        mcp.tool(name="discord_list_servers", description="List all servers the bot is in")(list_servers)
+        mcp.tool(name="discord_list_channels", description="List all channels in a Discord server")(get_server_channels)
+        mcp.tool(name="discord_list_roles", description="List all roles in a Discord server")(get_server_roles)
+        
+        logger.info("Additional tools registered successfully")
+    except Exception as e:
+        logger.error(f"Error registering additional tools: {e}")
+
+
+# Initialize entity resolver
+entity_resolver = None
+
+
+async def get_entity_resolver():
+    """Get or initialize the entity resolver."""
+    global entity_resolver, registry
+    
+    if entity_resolver is None and registry and registry.api:
+        from mcp_server.nlp_processor import EntityResolver
+        entity_resolver = EntityResolver(registry.api)
+    
+    return entity_resolver
+
+
 if __name__ == "__main__":
+    # Register additional tools before starting the server
+    asyncio.run(register_additional_tools())
+    
+    # Run the MCP server
     mcp.run(transport="stdio")
