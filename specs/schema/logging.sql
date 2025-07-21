@@ -3,8 +3,10 @@ CREATE TABLE tool_usage_log (
     id SERIAL PRIMARY KEY,
     tool_name VARCHAR(255) NOT NULL,
     user_id VARCHAR(255) NOT NULL,
-    guild_id VARCHAR(255),
-    channel_id VARCHAR(255),
+    server_id INTEGER REFERENCES servers(id) ON DELETE SET NULL,
+    discord_guild_id VARCHAR(255), -- Keeping for backward compatibility
+    channel_id INTEGER REFERENCES channels(id) ON DELETE SET NULL,
+    discord_channel_id VARCHAR(255), -- Keeping for backward compatibility
     parameters JSONB,
     result_status VARCHAR(50),
     execution_time FLOAT,
@@ -28,13 +30,14 @@ CREATE INDEX idx_tool_usage_log_timestamp ON tool_usage_log(timestamp);
 CREATE TABLE tool_status (
     id SERIAL PRIMARY KEY,
     tool_name VARCHAR(255) NOT NULL,
-    guild_id VARCHAR(255) NOT NULL,
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    discord_guild_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
     enabled BOOLEAN DEFAULT TRUE,
     disabled_reason TEXT,
     disabled_until TIMESTAMP,
     disabled_by VARCHAR(255),
     updated_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(tool_name, guild_id)
+    UNIQUE(tool_name, server_id)
 );
 
 -- Create index on tool_name for tool-based queries
@@ -50,8 +53,10 @@ CREATE TABLE error_log (
     error_message TEXT NOT NULL,
     stack_trace TEXT,
     user_id VARCHAR(255),
-    guild_id VARCHAR(255),
-    channel_id VARCHAR(255),
+    server_id INTEGER REFERENCES servers(id) ON DELETE SET NULL,
+    discord_guild_id VARCHAR(255), -- Keeping for backward compatibility
+    channel_id INTEGER REFERENCES channels(id) ON DELETE SET NULL,
+    discord_channel_id VARCHAR(255), -- Keeping for backward compatibility
     related_tool VARCHAR(255),
     timestamp TIMESTAMP DEFAULT NOW()
 );
@@ -73,7 +78,8 @@ CREATE TABLE audit_log (
     target_id VARCHAR(255),
     target_type VARCHAR(50),
     details JSONB,
-    guild_id VARCHAR(255),
+    server_id INTEGER REFERENCES servers(id) ON DELETE SET NULL,
+    discord_guild_id VARCHAR(255), -- Keeping for backward compatibility
     timestamp TIMESTAMP DEFAULT NOW()
 );
 
@@ -94,11 +100,12 @@ CREATE TABLE rate_limits (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
     tool_name VARCHAR(255) NOT NULL,
-    guild_id VARCHAR(255),
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    discord_guild_id VARCHAR(255), -- Keeping for backward compatibility
     request_count INTEGER DEFAULT 1,
     first_request TIMESTAMP DEFAULT NOW(),
     last_request TIMESTAMP DEFAULT NOW(),
-    UNIQUE(user_id, tool_name, guild_id)
+    UNIQUE(user_id, tool_name, server_id)
 );
 
 -- Create index on user_id for user-based queries

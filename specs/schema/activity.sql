@@ -19,8 +19,10 @@ CREATE INDEX idx_member_activity_date ON member_activity(date);
 -- Channel Activity Table
 CREATE TABLE channel_activity (
     id SERIAL PRIMARY KEY,
-    channel_id VARCHAR(255) NOT NULL,
-    guild_id VARCHAR(255) NOT NULL,
+    channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
+    discord_channel_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    discord_guild_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
     date DATE NOT NULL,
     message_count INTEGER DEFAULT 0,
     unique_authors INTEGER DEFAULT 0,
@@ -60,13 +62,15 @@ CREATE INDEX idx_member_channel_activity_date ON member_channel_activity(date);
 -- Hourly Activity Table (for tracking peak hours)
 CREATE TABLE hourly_activity (
     id SERIAL PRIMARY KEY,
-    guild_id VARCHAR(255) NOT NULL,
-    channel_id VARCHAR(255) NOT NULL,
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    discord_guild_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
+    channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
+    discord_channel_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
     date DATE NOT NULL,
     hour INTEGER NOT NULL CHECK (hour >= 0 AND hour < 24),
     message_count INTEGER DEFAULT 0,
     unique_authors INTEGER DEFAULT 0,
-    UNIQUE(guild_id, channel_id, date, hour)
+    UNIQUE(server_id, channel_id, date, hour)
 );
 
 -- Create index on guild_id for guild-based queries
@@ -82,8 +86,10 @@ CREATE INDEX idx_hourly_activity_time ON hourly_activity(date, hour);
 CREATE TABLE reaction_activity (
     id SERIAL PRIMARY KEY,
     message_id VARCHAR(255) NOT NULL,
-    channel_id VARCHAR(255) NOT NULL,
-    guild_id VARCHAR(255) NOT NULL,
+    channel_id INTEGER REFERENCES channels(id) ON DELETE CASCADE,
+    discord_channel_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    discord_guild_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
     emoji VARCHAR(255) NOT NULL,
     count INTEGER DEFAULT 0,
     first_added_at TIMESTAMP,

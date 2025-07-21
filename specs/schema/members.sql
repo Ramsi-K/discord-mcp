@@ -2,7 +2,8 @@
 CREATE TABLE members (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
-    guild_id VARCHAR(255) NOT NULL,
+    server_id INTEGER REFERENCES servers(id) ON DELETE CASCADE,
+    discord_guild_id VARCHAR(255) NOT NULL, -- Keeping for backward compatibility
     username VARCHAR(255) NOT NULL,
     display_name VARCHAR(255),
     joined_at TIMESTAMP,
@@ -11,7 +12,7 @@ CREATE TABLE members (
     last_active TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(user_id, guild_id)
+    UNIQUE(user_id, server_id)
 );
 
 -- Member Interests Table
