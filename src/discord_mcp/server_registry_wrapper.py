@@ -37,19 +37,25 @@ class ServerRegistry:
         try:
             # Get database path from environment variable
             db_path = os.getenv("MCP_DISCORD_DB_PATH")
-            
+
             # Import the initialization module
-            from server_registry.init import init_server_registry
-            
+            from .server_registry.init import init_server_registry
+
             # Initialize the registry
-            result = init_server_registry(discord_client=self.discord_bot, db_path=db_path)
-            
+            result = init_server_registry(
+                discord_client=self.discord_bot, db_path=db_path
+            )
+
             if result["success"]:
                 self.api = result["api"]
-                logger.info(f"Server registry initialized successfully using database at {result.get('db_path')}")
+                logger.info(
+                    f"Server registry initialized successfully using database at {result.get('db_path')}"
+                )
                 return True
             else:
-                logger.error(f"Failed to initialize server registry: {result.get('message')}")
+                logger.error(
+                    f"Failed to initialize server registry: {result.get('message')}"
+                )
                 return False
         except Exception as e:
             logger.error(f"Failed to initialize server registry: {str(e)}")
@@ -74,7 +80,9 @@ class ServerRegistry:
         if self.api:
             self.api.clear_current_user()
 
-    async def update_registry(self, server_id: Optional[str] = None) -> Dict[str, Any]:
+    async def update_registry(
+        self, server_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Update the server registry.
 
@@ -102,7 +110,9 @@ class ServerRegistry:
             logger.error(f"Error updating registry: {str(e)}")
             return {"error": f"Error updating registry: {str(e)}"}
 
-    def track_context(self, entity_type: str, entity_id: Union[int, str]) -> bool:
+    def track_context(
+        self, entity_type: str, entity_id: Union[int, str]
+    ) -> bool:
         """
         Track an entity in the conversation context.
 
@@ -121,7 +131,9 @@ class ServerRegistry:
             if isinstance(entity_id, str):
                 entity_id = int(entity_id)
 
-            return self.api.track_context(self.current_user_id, entity_type, entity_id)
+            return self.api.track_context(
+                self.current_user_id, entity_type, entity_id
+            )
         except Exception as e:
             logger.error(f"Error tracking context: {str(e)}")
             return False

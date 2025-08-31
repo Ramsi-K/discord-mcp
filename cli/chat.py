@@ -1,6 +1,12 @@
-from core.claude import Claude
-from mcp_client import MCPClient
-from core.tools import ToolManager
+# Add parent directory to path for imports
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from cli.claude import Claude
+from .mcp_client import MCPClient
+from .tools import ToolManager
 from anthropic.types import MessageParam
 
 

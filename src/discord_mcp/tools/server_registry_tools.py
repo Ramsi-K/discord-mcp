@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 async def get_discord_bot(ctx: Context):
     """Helper function to get the Discord bot instance."""
     try:
-        from mcp_server.server import discord_bot
+        from ...server import discord_bot
+
         await ctx.info(f"Discord bot: {discord_bot}")
         return discord_bot
     except Exception as e:
@@ -29,7 +30,7 @@ async def get_server_info(
 ) -> Dict[str, Any]:
     """Get detailed information about a Discord server."""
     await ctx.info(f"Getting server info for server_id: {server_id}")
-    
+
     discord_bot = await get_discord_bot(ctx)
     if not discord_bot:
         return {"error": "Discord bot not available"}
@@ -101,7 +102,7 @@ async def get_server_info(
 async def list_servers(*, ctx: Context) -> Dict[str, Any]:
     """List all servers the bot is in."""
     await ctx.info("Listing servers")
-    
+
     discord_bot = await get_discord_bot(ctx)
     if not discord_bot:
         return {"error": "Discord bot not available"}
@@ -134,7 +135,7 @@ async def get_server_channels(
 ) -> Dict[str, Any]:
     """Get all channels in a Discord server."""
     await ctx.info(f"Getting channels for server {server_id}")
-    
+
     discord_bot = await get_discord_bot(ctx)
     if not discord_bot:
         return {"error": "Discord bot not available"}
@@ -185,7 +186,7 @@ async def get_server_roles(
 ) -> Dict[str, Any]:
     """Get all roles in a Discord server."""
     await ctx.info(f"Getting roles for server {server_id}")
-    
+
     discord_bot = await get_discord_bot(ctx)
     if not discord_bot:
         return {"error": "Discord bot not available"}
@@ -236,7 +237,7 @@ async def find_server_by_name(
 ) -> Dict[str, Any]:
     """Find a server by name (supports partial matching)."""
     await ctx.info(f"Finding server by name: {name}")
-    
+
     discord_bot = await get_discord_bot(ctx)
     if not discord_bot:
         return {"error": "Discord bot not available"}
@@ -276,7 +277,7 @@ async def find_channel_by_name(
 ) -> Dict[str, Any]:
     """Find a channel by name in a specific server."""
     await ctx.info(f"Finding channel '{name}' in server {server_id}")
-    
+
     discord_bot = await get_discord_bot(ctx)
     if not discord_bot:
         return {"error": "Discord bot not available"}
@@ -328,7 +329,7 @@ async def find_role_by_name(
 ) -> Dict[str, Any]:
     """Find a role by name in a specific server."""
     await ctx.info(f"Finding role '{name}' in server {server_id}")
-    
+
     discord_bot = await get_discord_bot(ctx)
     if not discord_bot:
         return {"error": "Discord bot not available"}

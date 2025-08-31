@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "discord": {
+      "command": "uvx",
+      "args": ["discord-mcp@latest"],
+      "env": {
+        "DISCORD_TOKEN": "YOUR_DISCORD_BOT_TOKEN_HERE",
+        "MCP_DISCORD_DB_PATH": "./discord_mcp.db",
+        "DRY_RUN": "false",
+        "LOG_LEVEL": "INFO"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "discord_send_message",
+        "discord_get_channel_info",
+        "discord_bot_status",
+        "discord_list_servers",
+        "discord_list_channels",
+        "discord_list_roles",
+        "registry_update",
+        "registry_get_server",
+        "registry_get_channel",
+        "registry_get_role"
+      ]
+    }
+  }
+}

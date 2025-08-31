@@ -2,9 +2,15 @@ from typing import List, Tuple
 from mcp.types import Prompt, PromptMessage
 from anthropic.types import MessageParam
 
-from core.chat import Chat
-from core.claude import Claude
-from mcp_client import MCPClient
+# Add parent directory to path for imports
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from cli.chat import Chat
+from cli.claude import Claude
+from .mcp_client import MCPClient
 
 
 class CliChat(Chat):

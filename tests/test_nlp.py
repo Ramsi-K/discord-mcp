@@ -4,8 +4,14 @@ Test script for the Natural Language Command Processor.
 
 import asyncio
 import os
+import sys
 import logging
 from dotenv import load_dotenv
+
+# Add the parent directory to the path so we can import the restructured package
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,9 +24,9 @@ load_dotenv()
 async def test_nlp():
     """Test the NLP processor."""
     # Import the bot class
-    from bot.bot import DiscordMCPBot
-    from mcp_server.server_registry_wrapper import ServerRegistry
-    from mcp_server.nlp_processor import NLPProcessor
+    from src.discord_mcp.discord_client.bot import DiscordMCPBot
+    from src.discord_mcp.server_registry_wrapper import ServerRegistry
+    from src.discord_mcp.nlp_processor import NLPProcessor
 
     # Get token
     token = os.getenv("DISCORD_TOKEN", "")

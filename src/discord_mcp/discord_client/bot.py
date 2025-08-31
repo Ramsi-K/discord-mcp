@@ -19,7 +19,15 @@ logger = logging.getLogger(__name__)
 class DiscordMCPBot(commands.Bot):
     """Discord bot that can be connected to an MCP server."""
 
-    def __init__(self):
+    def __init__(self, config=None):
+        # Import config if not provided
+        if config is None:
+            from ..config import Config
+
+            config = Config()
+
+        self.config = config
+
         # Set up intents
         intents = discord.Intents.default()
         intents.message_content = True
@@ -37,11 +45,33 @@ class DiscordMCPBot(commands.Bot):
         logger.info(
             f"Sending direct message to channel {channel_id}: {message}"
         )
+
+        # Check dry run mode
+        if self.config.dry_run:
+            logger.info("DRY_RUN mode: Message not actually sent")
+            return {
+                "success": True,
+                "channel_id": channel_id,
+                "message": message,
+                "message_id": "dry_run_message_id",
+                "timestamp": "2024-01-01T00:00:00.000000+00:00",
+                "dry_run": True,
+            }
+
         try:
             # Get the channel
             channel = self.get_channel(int(channel_id))
             if not channel:
                 channel = await self.fetch_channel(int(channel_id))
+
+            # Check guild allowlist if configured
+            if channel.guild and not self.config.is_guild_allowed(
+                str(channel.guild.id)
+            ):
+                return {
+                    "success": False,
+                    "error": f"Guild {channel.guild.id} is not in the allowlist",
+                }
 
             # Send the message
             allowed_mentions = discord.AllowedMentions(
@@ -66,11 +96,36 @@ class DiscordMCPBot(commands.Bot):
     async def get_channel_info(self, channel_id):
         """Get information about a channel directly."""
         logger.info(f"Getting channel info for channel {channel_id}")
+
+        # Check dry run mode
+        if self.config.dry_run:
+            logger.info("DRY_RUN mode: Returning mock channel info")
+            return {
+                "success": True,
+                "id": channel_id,
+                "name": "mock-channel",
+                "type": "text",
+                "topic": "Mock channel for dry run",
+                "nsfw": False,
+                "position": 0,
+                "created_at": "2024-01-01T00:00:00.000000+00:00",
+                "dry_run": True,
+            }
+
         try:
             # Get the channel
             channel = self.get_channel(int(channel_id))
             if not channel:
                 channel = await self.fetch_channel(int(channel_id))
+
+            # Check guild allowlist if configured
+            if channel.guild and not self.config.is_guild_allowed(
+                str(channel.guild.id)
+            ):
+                return {
+                    "success": False,
+                    "error": f"Guild {channel.guild.id} is not in the allowlist",
+                }
 
             # Return channel info
             return {
@@ -100,6 +155,17 @@ class DiscordMCPBot(commands.Bot):
         """Called when the bot is ready."""
         logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
         logger.info(f"Connected to {len(self.guilds)} guilds")
+
+        # Filter guilds by allowlist if configured
+        if self.config.guild_allowlist:
+            allowed_guilds = [
+                guild
+                for guild in self.guilds
+                if self.config.is_guild_allowed(str(guild.id))
+            ]
+            logger.info(
+                f"Allowed guilds: {len(allowed_guilds)}/{len(self.guilds)}"
+            )
 
         # Set status
         await self.change_presence(

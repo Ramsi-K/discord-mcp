@@ -1,5 +1,5 @@
 [project]
-name = "mcp-discord"
+name = "discord-mcp"
 version = "0.1.0"
 description = "Discord MCP server for AI-assisted Discord management"
 readme = "README.md"
@@ -12,6 +12,9 @@ dependencies = [
     "prompt-toolkit>=3.0.51",
     "python-dotenv>=1.1.0",
 ]
+
+[project.scripts]
+discord-mcp = "discord_mcp.server:main"
 
 [project.optional-dependencies]
 dev = [
@@ -26,7 +29,11 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["mcp_server", "bot", "core"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["discord_mcp*"]
 
 [tool.black]
 line-length = 88
