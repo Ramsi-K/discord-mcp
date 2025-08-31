@@ -1,0 +1,63 @@
+{
+  "description": "Example MCP configurations for Discord MCP server",
+  "examples": {
+    "kiro-ide": {
+      "description": "Configuration for Kiro IDE (.kiro/settings/mcp.json)",
+      "config": {
+        "mcpServers": {
+          "discord": {
+            "command": "uvx",
+            "args": ["discord-mcp@latest"],
+            "env": {
+              "DISCORD_TOKEN": "YOUR_DISCORD_BOT_TOKEN_HERE",
+              "MCP_DISCORD_DB_PATH": "./discord_mcp.db",
+              "LOG_LEVEL": "INFO",
+              "DRY_RUN": "false"
+            },
+            "disabled": false,
+            "autoApprove": [
+              "discord_send_message",
+              "discord_get_channel_info",
+              "discord_list_servers",
+              "discord_list_channels",
+              "discord_bot_status"
+            ]
+          }
+        }
+      }
+    },
+    "claude-desktop": {
+      "description": "Configuration for Claude Desktop (claude_desktop_config.json)",
+      "config": {
+        "mcpServers": {
+          "discord": {
+            "command": "uvx",
+            "args": ["discord-mcp@latest"],
+            "env": {
+              "DISCORD_TOKEN": "YOUR_DISCORD_BOT_TOKEN_HERE",
+              "MCP_DISCORD_DB_PATH": "./discord_mcp.db"
+            }
+          }
+        }
+      }
+    },
+    "local-development": {
+      "description": "For local development with editable install",
+      "config": {
+        "mcpServers": {
+          "discord": {
+            "command": "python",
+            "args": ["-m", "discord_mcp"],
+            "env": {
+              "DISCORD_TOKEN": "YOUR_DISCORD_BOT_TOKEN_HERE",
+              "MCP_DISCORD_DB_PATH": "./discord_mcp.db",
+              "GUILD_ALLOWLIST": "123456789,987654321",
+              "LOG_LEVEL": "DEBUG",
+              "DRY_RUN": "false"
+            }
+          }
+        }
+      }
+    }
+  }
+}

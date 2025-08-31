@@ -124,6 +124,16 @@ async def ensure_bot_running(token: str = "") -> dict:
             init_success = await registry.initialize()
             if not init_success:
                 logger.warning("Failed to initialize server registry")
+            else:
+                # Automatically populate the registry with current Discord data
+                logger.info("Populating server registry with Discord data...")
+                update_result = await registry.update_registry()
+                if update_result.get("success"):
+                    logger.info("Server registry populated successfully")
+                else:
+                    logger.warning(
+                        f"Failed to populate server registry: {update_result.get('error', 'Unknown error')}"
+                    )
 
         return {
             "success": True,
@@ -476,35 +486,7 @@ async def register_additional_tools():
         # Register standard tools (this registers: server_info, list_servers, server_channels, server_roles, find_server, find_channel, find_role)
         await register_tools(mcp)
 
-        # Register server registry tools with discord_ prefix for consistency
-        mcp.tool(
-            name="discord_list_servers",
-            description="List all servers the bot is in",
-        )(list_servers)
-        mcp.tool(
-            name="discord_list_channels",
-            description="List all channels in a Discord server",
-        )(get_server_channels)
-        mcp.tool(
-            name="discord_list_roles",
-            description="List all roles in a Discord server",
-        )(get_server_roles)
-        mcp.tool(
-            name="discord_get_server_info",
-            description="Get detailed information about a Discord server",
-        )(get_server_info)
-        mcp.tool(
-            name="discord_find_server",
-            description="Find a server by name (supports partial matching)",
-        )(find_server_by_name)
-        mcp.tool(
-            name="discord_find_channel",
-            description="Find a channel by name in a specific server",
-        )(find_channel_by_name)
-        mcp.tool(
-            name="discord_find_role",
-            description="Find a role by name in a specific server",
-        )(find_role_by_name)
+        # Note: Core Discord tools are now registered via register_tools()
 
         logger.info("Additional tools registered successfully")
     except Exception as e:

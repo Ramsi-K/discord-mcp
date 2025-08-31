@@ -171,11 +171,31 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
             context_manager_service (ContextManagerService, optional): The context manager service to use.
             discord_client (Any, optional): The Discord client to use for API calls.
         """
+        # Initialize database connection
+        from .db import DatabaseConnection
+
+        db = DatabaseConnection()
+
+        # Initialize repositories with database connection
+        from .repositories import (
+            ServerRepository,
+            ChannelRepository,
+            RoleRepository,
+            ContextRepository,
+        )
+
+        server_repo = ServerRepository(db)
+        channel_repo = ChannelRepository(db)
+        role_repo = RoleRepository(db)
+        context_repo = ContextRepository(db)
+
+        # Initialize services with repositories
         self.server_registry_service = (
-            server_registry_service or ServerRegistryService()
+            server_registry_service
+            or ServerRegistryService(server_repo, channel_repo, role_repo)
         )
         self.context_manager_service = (
-            context_manager_service or ContextManagerService()
+            context_manager_service or ContextManagerService(context_repo)
         )
         self.discord_client = discord_client
         self.current_user_id = None
@@ -193,25 +213,48 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
         Returns:
             Optional[Server]: The server if found, None otherwise.
         """
-        # This is a stub implementation
-        # In a real implementation, we would:
-        # 1. Try to get the server by ID
-        # 2. Try to get the server by name
-        # 3. Try to get the server by alias
-        # 4. If context is provided, try to get the server from context
+        try:
+            # Try to get from database first
+            server_repo = self.server_registry_service.server_repo
 
-        # For now, just create a dummy server
-        if self.discord_client:
-            for guild in self.discord_client.guilds:
-                if reference.lower() in guild.name.lower() or reference == str(
-                    guild.id
-                ):
-                    return Server(
-                        discord_id=str(guild.id),
-                        name=guild.name,
-                    )
+            # 1. Try by Discord ID (if it looks like an ID)
+            if reference.isdigit():
+                server = server_repo.get_server_by_discord_id(reference)
+                if server:
+                    return server
 
-        return None
+            # 2. Try by database ID (if it's a small number)
+            if reference.isdigit() and len(reference) < 10:
+                server = server_repo.get_server_by_id(int(reference))
+                if server:
+                    return server
+
+            # 3. Try by name
+            server = server_repo.get_server_by_name(reference)
+            if server:
+                return server
+
+            # 4. Try by alias
+            server = server_repo.get_server_by_alias(reference)
+            if server:
+                return server
+
+            # 5. Fall back to Discord client search (for partial matches)
+            if self.discord_client:
+                for guild in self.discord_client.guilds:
+                    if (
+                        reference.lower() in guild.name.lower()
+                        or reference == str(guild.id)
+                    ):
+                        return Server(
+                            discord_id=str(guild.id),
+                            name=guild.name,
+                        )
+
+            return None
+        except Exception as e:
+            logger.error(f"Error getting server by reference {reference}: {e}")
+            return None
 
     def get_channel(
         self,
@@ -230,51 +273,93 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
         Returns:
             Optional[Channel]: The channel if found, None otherwise.
         """
-        # This is a stub implementation
-        # In a real implementation, we would:
-        # 1. Try to get the channel by ID
-        # 2. If server_reference is provided, get the server and then search its channels
-        # 3. Try to get the channel by name
-        # 4. Try to get the channel by alias
-        # 5. If context is provided, try to get the channel from context
+        try:
+            channel_repo = self.server_registry_service.channel_repo
+            server_id = None
 
-        # For now, just create a dummy channel
-        if self.discord_client:
-            # If server_reference is provided, limit search to that server
+            # If server_reference is provided, get the server first
             if server_reference:
                 server = self.get_server(server_reference, context)
                 if server:
-                    guild = self.discord_client.get_guild(
-                        int(server.discord_id)
-                    )
-                    if guild:
+                    server_id = server.id
+                else:
+                    return None  # Server not found
+
+            # 1. Try by Discord ID (if it looks like an ID)
+            if reference.isdigit():
+                channel = channel_repo.get_channel_by_discord_id(reference)
+                if channel and (
+                    server_id is None or channel.server_id == server_id
+                ):
+                    return channel
+
+            # 2. Try by database ID (if it's a small number)
+            if reference.isdigit() and len(reference) < 10:
+                channel = channel_repo.get_channel_by_id(int(reference))
+                if channel and (
+                    server_id is None or channel.server_id == server_id
+                ):
+                    return channel
+
+            # 3. Try by name
+            channel = channel_repo.get_channel_by_name(reference, server_id)
+            if channel:
+                return channel
+
+            # 4. Try by alias
+            channel = channel_repo.get_channel_by_alias(reference, server_id)
+            if channel:
+                return channel
+
+            # 5. Fall back to Discord client search (for partial matches)
+            if self.discord_client:
+                if server_reference:
+                    server = self.get_server(server_reference, context)
+                    if server:
+                        guild = self.discord_client.get_guild(
+                            int(server.discord_id)
+                        )
+                        if guild:
+                            for channel in guild.channels:
+                                if (
+                                    reference.lower() in channel.name.lower()
+                                    or reference == str(channel.id)
+                                ):
+                                    from .models import ChannelType
+
+                                    return Channel(
+                                        discord_id=str(channel.id),
+                                        server_id=int(server.id or 0),
+                                        name=channel.name,
+                                        type=ChannelType.from_string(
+                                            str(channel.type)
+                                        ),
+                                    )
+                else:
+                    # Search all servers
+                    for guild in self.discord_client.guilds:
                         for channel in guild.channels:
                             if (
                                 reference.lower() in channel.name.lower()
                                 or reference == str(channel.id)
                             ):
+                                from .models import ChannelType
+
                                 return Channel(
                                     discord_id=str(channel.id),
-                                    server_id=int(server.id or 0),
+                                    server_id=0,  # We don't have a server ID in this case
                                     name=channel.name,
-                                    type=str(channel.type),
+                                    type=ChannelType.from_string(
+                                        str(channel.type)
+                                    ),
                                 )
-            else:
-                # Search all servers
-                for guild in self.discord_client.guilds:
-                    for channel in guild.channels:
-                        if (
-                            reference.lower() in channel.name.lower()
-                            or reference == str(channel.id)
-                        ):
-                            return Channel(
-                                discord_id=str(channel.id),
-                                server_id=0,  # We don't have a server ID in this case
-                                name=channel.name,
-                                type=str(channel.type),
-                            )
 
-        return None
+            return None
+        except Exception as e:
+            logger.error(
+                f"Error getting channel by reference {reference}: {e}"
+            )
+            return None
 
     def get_role(
         self,
@@ -355,30 +440,43 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
         """
         # If we don't have a Discord client, we can't update the registry
         if not self.discord_client:
+            logger.error("No Discord client available for registry update")
             return False
 
         try:
             if server_reference:
-                # Resolve the server reference
-                server = self.get_server(server_reference)
-                if not server:
-                    return False
+                # Find the Discord guild by reference
+                discord_guild = None
 
-                # Get the Discord guild data
-                discord_guild = self.discord_client.get_guild(
-                    int(server.discord_id)
-                )
+                # Try to find by ID first
+                if server_reference.isdigit():
+                    discord_guild = self.discord_client.get_guild(
+                        int(server_reference)
+                    )
+
+                # If not found by ID, try by name
                 if not discord_guild:
+                    for guild in self.discord_client.guilds:
+                        if guild.name.lower() == server_reference.lower():
+                            discord_guild = guild
+                            break
+
+                if not discord_guild:
+                    logger.error(
+                        f"Discord guild not found for reference: {server_reference}"
+                    )
                     return False
 
                 # Update the registry for this server
                 return self.server_registry_service.update_server_registry(
-                    server.id, discord_guild
+                    0, discord_guild  # server_id not used in the service
                 )
             else:
                 # Get all Discord guilds
-                # Note: discord.py's Client doesn't have get_guilds(), it has guilds property
                 discord_guilds = self.discord_client.guilds
+                logger.info(
+                    f"Updating registry for {len(discord_guilds)} guilds"
+                )
 
                 # Update the registry for all servers
                 return (
@@ -387,7 +485,7 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
                     )
                 )
         except Exception as e:
-            print(f"Error updating registry: {e}")
+            logger.error(f"Error updating registry: {e}")
             return False
 
     def check_permission(self, server_reference: str, permission: str) -> bool:

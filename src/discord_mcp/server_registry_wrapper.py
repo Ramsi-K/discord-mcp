@@ -137,3 +137,66 @@ class ServerRegistry:
         except Exception as e:
             logger.error(f"Error tracking context: {str(e)}")
             return False
+
+    async def find_server(self, name_or_id: str) -> Optional[Any]:
+        """
+        Find a server by name or ID.
+
+        Args:
+            name_or_id (str): The server name or ID to search for.
+
+        Returns:
+            Optional[Any]: The server if found, None otherwise.
+        """
+        if not self.api:
+            return None
+
+        try:
+            return self.api.get_server(name_or_id)
+        except Exception as e:
+            logger.error(f"Error finding server {name_or_id}: {str(e)}")
+            return None
+
+    async def find_channel(
+        self, name_or_id: str, server_name_or_id: str = None
+    ) -> Optional[Any]:
+        """
+        Find a channel by name or ID.
+
+        Args:
+            name_or_id (str): The channel name or ID to search for.
+            server_name_or_id (str, optional): The server name or ID to limit search to.
+
+        Returns:
+            Optional[Any]: The channel if found, None otherwise.
+        """
+        if not self.api:
+            return None
+
+        try:
+            return self.api.get_channel(name_or_id, server_name_or_id)
+        except Exception as e:
+            logger.error(f"Error finding channel {name_or_id}: {str(e)}")
+            return None
+
+    async def find_role(
+        self, name_or_id: str, server_name_or_id: str = None
+    ) -> Optional[Any]:
+        """
+        Find a role by name or ID.
+
+        Args:
+            name_or_id (str): The role name or ID to search for.
+            server_name_or_id (str, optional): The server name or ID to limit search to.
+
+        Returns:
+            Optional[Any]: The role if found, None otherwise.
+        """
+        if not self.api:
+            return None
+
+        try:
+            return self.api.get_role(name_or_id, server_name_or_id)
+        except Exception as e:
+            logger.error(f"Error finding role {name_or_id}: {str(e)}")
+            return None

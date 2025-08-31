@@ -73,14 +73,32 @@ class ServerRegistryService:
         Update the server registry for a specific server.
 
         Args:
-            server_id (int): The server ID.
+            server_id (int): The server ID (not used, we use discord_guild.id).
             discord_guild (Any): The Discord guild object.
 
         Returns:
             bool: True if the update was successful, False otherwise.
         """
-        # This is a stub implementation
-        return True
+        try:
+            # Create/update server
+            server = self._create_server_from_guild(discord_guild)
+            server = self.server_repo.upsert_server(server)
+
+            # Update channels
+            self._update_channels_for_server(server, discord_guild)
+
+            # Update roles
+            self._update_roles_for_server(server, discord_guild)
+
+            logger.info(
+                f"Successfully updated registry for server {discord_guild.name}"
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                f"Error updating server registry for {discord_guild.name}: {e}"
+            )
+            return False
 
     def update_all_server_registries(self, discord_guilds: List[Any]) -> bool:
         """
@@ -93,12 +111,17 @@ class ServerRegistryService:
             bool: True if the update was successful, False otherwise.
         """
         try:
+            success_count = 0
             for guild in discord_guilds:
-                # Register or update the server
-                self.register_server(guild)
-            return True
+                if self.update_server_registry(0, guild):  # server_id not used
+                    success_count += 1
+
+            logger.info(
+                f"Updated registry for {success_count}/{len(discord_guilds)} servers"
+            )
+            return success_count > 0
         except Exception as e:
-            print(f"Error updating all server registries: {e}")
+            logger.error(f"Error updating all server registries: {e}")
             return False
 
     def generate_server_aliases(self, server: Server) -> List[str]:
@@ -217,3 +240,129 @@ class ServerRegistryService:
         from ..models import ChannelPermissions
 
         return ChannelPermissions()
+
+    def _create_server_from_guild(self, discord_guild: Any) -> Server:
+        """
+        Create a Server object from a Discord guild.
+
+        Args:
+            discord_guild (Any): The Discord guild object.
+
+        Returns:
+            Server: The created server object.
+        """
+        server = Server(
+            discord_id=str(discord_guild.id),
+            name=discord_guild.name,
+            description=discord_guild.description,
+            icon_url=(
+                str(discord_guild.icon.url) if discord_guild.icon else None
+            ),
+            owner_id=(
+                str(discord_guild.owner_id) if discord_guild.owner_id else None
+            ),
+        )
+
+        # Generate aliases
+        server.aliases = self.generate_server_aliases(server)
+
+        return server
+
+    def _update_channels_for_server(
+        self, server: Server, discord_guild: Any
+    ) -> None:
+        """
+        Update channels for a server.
+
+        Args:
+            server (Server): The server object.
+            discord_guild (Any): The Discord guild object.
+        """
+        try:
+            for discord_channel in discord_guild.channels:
+                channel = self._create_channel_from_discord(
+                    discord_channel, server.id
+                )
+                self.channel_repo.upsert_channel(channel)
+        except Exception as e:
+            logger.error(
+                f"Error updating channels for server {server.name}: {e}"
+            )
+
+    def _update_roles_for_server(
+        self, server: Server, discord_guild: Any
+    ) -> None:
+        """
+        Update roles for a server.
+
+        Args:
+            server (Server): The server object.
+            discord_guild (Any): The Discord guild object.
+        """
+        try:
+            for discord_role in discord_guild.roles:
+                role = self._create_role_from_discord(discord_role, server.id)
+                self.role_repo.upsert_role(role)
+        except Exception as e:
+            logger.error(f"Error updating roles for server {server.name}: {e}")
+
+    def _create_channel_from_discord(
+        self, discord_channel: Any, server_id: int
+    ) -> Channel:
+        """
+        Create a Channel object from a Discord channel.
+
+        Args:
+            discord_channel (Any): The Discord channel object.
+            server_id (int): The server ID.
+
+        Returns:
+            Channel: The created channel object.
+        """
+        from ..models import ChannelType
+
+        channel = Channel(
+            discord_id=str(discord_channel.id),
+            server_id=server_id,
+            name=discord_channel.name,
+            type=ChannelType.from_string(str(discord_channel.type)),
+            topic=getattr(discord_channel, "topic", None),
+            position=getattr(discord_channel, "position", 0),
+            parent_id=(
+                str(discord_channel.category.id)
+                if getattr(discord_channel, "category", None)
+                else None
+            ),
+        )
+
+        # Generate aliases
+        channel.aliases = self.generate_channel_aliases(channel)
+
+        return channel
+
+    def _create_role_from_discord(
+        self, discord_role: Any, server_id: int
+    ) -> Role:
+        """
+        Create a Role object from a Discord role.
+
+        Args:
+            discord_role (Any): The Discord role object.
+            server_id (int): The server ID.
+
+        Returns:
+            Role: The created role object.
+        """
+        role = Role(
+            discord_id=str(discord_role.id),
+            server_id=server_id,
+            name=discord_role.name,
+            color=discord_role.color.value,
+            position=discord_role.position,
+            mentionable=discord_role.mentionable,
+        )
+
+        # Generate aliases
+        role.aliases = self.generate_role_aliases(role)
+
+        return role
