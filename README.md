@@ -1,3 +1,5 @@
+🚧 Work in Progress 
+
 # Discord MCP Server
 
 A Model Context Protocol (MCP) server that provides Discord integration tools for AI assistants like Claude.
