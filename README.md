@@ -1,88 +1,112 @@
-🚧 Work in Progress 
-
 # Discord MCP Server
+
+> ⚠️ **ALPHA SOFTWARE** - This project is in early alpha development. Features may be incomplete or buggy. Use at your own risk.
 
 A Model Context Protocol (MCP) server that provides Discord integration tools for AI assistants like Claude.
 
+**Current Version**: 0.0.1-alpha1 (Local Development)
+
+## Project Status
+
+- 🔬 **Phase: Local Development** - Testing with MCP Inspector
+- 📋 **Next: Alpha Release** - Publish to PyPI for Claude Desktop testing
+- 🎯 **Future: Beta & v1.0** - Feature-complete and stable
+
+See [specs/ROADMAP.md](specs/ROADMAP.md) for version planning.
+
 ## Overview
 
-This MCP server enables AI assistants to interact with Discord servers through a comprehensive set of tools for:
+This MCP server enables AI assistants to interact with Discord servers through tools for:
 
-- Sending messages to Discord channels
-- Retrieving server, channel, and role information
-- Managing Discord bot operations
-- Maintaining a local registry of Discord entities with natural language aliases
+- ✅ **Core Operations**: List servers, channels, send messages
+- ✅ **Campaign System**: Reaction-based opt-in campaigns with reminders
+- 🚧 **Future Features**: Role management, member analytics, thread support, and more
 
-## Installation
-
-### From PyPI (Recommended)
-
-```bash
-pip install discord-mcp
-```
-
-### From Source
-
-```bash
-git clone https://github.com/yourusername/mcp-discord.git
-cd mcp-discord
-pip install -e .
-```
-
-## Configuration
+## Development Setup
 
 ### Prerequisites
 
-1. **Discord Bot Token**: Create a Discord application and bot at the [Discord Developer Portal](https://discord.com/developers/applications)
-2. **Bot Permissions**: Ensure your bot has the necessary permissions in your Discord server:
-   - Read Messages
-   - Send Messages
-   - View Channels
-   - Read Message History
+1. **Python 3.10+** with `uv` package manager
+2. **Discord Bot**: Create at [Discord Developer Portal](https://discord.com/developers/applications)
+3. **Node.js** (for MCP Inspector)
 
-### MCP Configuration
+### Installation
 
-Add the Discord MCP server to your MCP client configuration. The exact method depends on your MCP client:
+```bash
+# Clone repository
+git clone https://github.com/yourusername/mcp-discord.git
+cd mcp-discord
 
-#### For Kiro IDE
-
-Add to your `.kiro/settings/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "discord": {
-      "command": "discord-mcp",
-      "env": {
-        "DISCORD_TOKEN": "your_discord_bot_token_here",
-        "MCP_DISCORD_DB_PATH": "/path/to/discord_registry.db",
-        "LOG_LEVEL": "INFO"
-      },
-      "disabled": false,
-      "autoApprove": [
-        "discord_send_message",
-        "discord_get_channel_info",
-        "discord_list_servers",
-        "discord_list_channels",
-        "discord_bot_status"
-      ]
-    }
-  }
-}
+# Install with uv
+uv pip install -e ".[dev]"
 ```
 
-#### For Claude Desktop
+### Configuration
 
-Add to your `claude_desktop_config.json`:
+Create a `.env` file:
+
+```bash
+DISCORD_TOKEN=your_discord_bot_token_here
+MCP_DISCORD_DB_PATH=discord_mcp.db
+LOG_LEVEL=INFO
+DRY_RUN=false  # Set to true for testing without Discord API
+```
+
+## Testing with MCP Inspector
+
+The MCP Inspector lets you test tools locally before deploying.
+
+### 1. Start the MCP Inspector
+
+```bash
+npx @modelcontextprotocol/inspector python -m discord_mcp
+```
+
+This will:
+- Start your Discord MCP server
+- Launch the MCP Inspector web UI
+- Open in your browser (usually http://localhost:5173)
+
+### 2. Test Available Tools
+
+In the inspector, you can test:
+- `discord_list_servers` - See all servers your bot is in
+- `discord_list_channels` - List channels in a server
+- `discord_send_message` - Send test messages
+- `discord_create_campaign` - Create reaction campaigns
+- And more...
+
+### 3. Alternative: Direct Module Run
+
+```bash
+# Run server directly (for stdio transport)
+python -m discord_mcp
+
+# Run with development script
+python dev.py server
+
+# Run with inspector mode
+python dev.py inspector
+```
+
+## Claude Desktop Configuration (Alpha/Beta Only)
+
+> ⚠️ **Not ready yet** - First test locally with inspector, then we'll publish to PyPI
+
+Once published to PyPI, you can configure Claude Desktop:
+
+**Windows**: Edit `%APPDATA%\Claude\claude_desktop_config.json`
+**Mac**: Edit `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "discord": {
-      "command": "discord-mcp",
+      "command": "python",
+      "args": ["-m", "discord_mcp"],
       "env": {
-        "DISCORD_TOKEN": "your_discord_bot_token_here",
-        "MCP_DISCORD_DB_PATH": "/path/to/discord_registry.db",
+        "DISCORD_TOKEN": "your_token_here",
+        "MCP_DISCORD_DB_PATH": "C:\\path\\to\\discord_mcp.db",
         "LOG_LEVEL": "INFO"
       }
     }
@@ -90,217 +114,112 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-#### Using uvx (Alternative)
+Restart Claude Desktop to load the server.
 
-If you prefer to use uvx instead of installing globally:
+## Available Tools (v0.0.1-alpha)
 
-```json
-{
-  "mcpServers": {
-    "discord": {
-      "command": "uvx",
-      "args": ["discord-mcp"],
-      "env": {
-        "DISCORD_TOKEN": "your_discord_bot_token_here",
-        "MCP_DISCORD_DB_PATH": "/path/to/discord_registry.db",
-        "LOG_LEVEL": "INFO"
-      },
-      "disabled": false
-    }
-  }
-}
+### Core Discord Tools
+- `discord_list_servers` - List all Discord servers
+- `discord_list_channels` - List channels with type filtering
+- `discord_get_channel_info` - Get detailed channel information
+- `discord_bot_status` - Check bot connection status
+- `discord_get_recent_messages` - Retrieve recent messages
+- `discord_get_message` - Get specific message by ID
+- `discord_send_message` - Send messages with reply support
+
+### Campaign & Reminder Tools
+- `discord_create_campaign` - Create reaction opt-in campaigns
+- `discord_tally_optins` - Track campaign participants
+- `discord_list_optins` - List opt-ins with pagination
+- `discord_build_reminder` - Build reminder messages
+- `discord_send_reminder` - Send reminders with rate limiting
+- `discord_run_due_reminders` - Process scheduled reminders
+
+See [specs/implemented/core_tools.md](specs/implemented/core_tools.md) for detailed documentation.
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DISCORD_TOKEN` | Yes | - | Discord bot token |
+| `MCP_DISCORD_DB_PATH` | No | `discord_mcp.db` | SQLite database path |
+| `GUILD_ALLOWLIST` | No | - | Comma-separated server IDs to restrict access |
+| `LOG_LEVEL` | No | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `DRY_RUN` | No | `false` | Test mode without Discord API calls |
+
+## Development Commands
+
+```bash
+# Run tests
+uv run pytest
+
+# Format code
+uv run black src/ tests/
+uv run isort src/ tests/
+
+# Build package
+uv build
+
+# Run MCP inspector
+npx @modelcontextprotocol/inspector python -m discord_mcp
 ```
 
-### Environment Variables
-
-The following environment variables can be configured in the MCP server environment:
-
-- **`DISCORD_TOKEN`** (required): Your Discord bot token
-- **`MCP_DISCORD_DB_PATH`** (optional): Path to SQLite database file. Default: `discord_mcp.db`
-- **`GUILD_ALLOWLIST`** (optional): Comma-separated list of Discord server IDs to restrict bot access
-- **`LOG_LEVEL`** (optional): Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL). Default: `INFO`
-- **`DRY_RUN`** (optional): Set to "true" to enable dry-run mode (no actual Discord API calls). Default: `false`
-
-#### Complete Configuration Example
-
-See [`example-mcp-config.json`](example-mcp-config.json) for a complete configuration template.
-
-```json
-{
-  "mcpServers": {
-    "discord": {
-      "command": "discord-mcp",
-      "env": {
-        "DISCORD_TOKEN": "your_discord_bot_token_here",
-        "MCP_DISCORD_DB_PATH": "/path/to/discord_registry.db",
-        "GUILD_ALLOWLIST": "123456789012345678,987654321098765432",
-        "LOG_LEVEL": "INFO",
-        "DRY_RUN": "false"
-      },
-      "disabled": false,
-      "autoApprove": [
-        "discord_send_message",
-        "discord_get_channel_info",
-        "discord_list_servers",
-        "discord_list_channels",
-        "discord_list_roles",
-        "discord_bot_status",
-        "registry_update",
-        "registry_get_server",
-        "registry_get_channel",
-        "registry_get_role"
-      ]
-    }
-  }
-}
-```
-
-## Usage
-
-Once configured, the Discord MCP server will automatically start when your MCP client connects. The server provides tools that AI assistants can use to interact with Discord.
-
-### Example Interactions
-
-- "Send a message to the general channel saying hello"
-- "List all channels in the server"
-- "Get information about the moderator role"
-- "Show me the status of the Discord bot"
-
-### Dry Run Mode
-
-For testing purposes, you can enable dry-run mode by setting `DRY_RUN=true` in the environment variables. In this mode, the server will simulate Discord operations without making actual API calls.
-
-## Available Tools
-
-The MCP server provides the following tools for AI assistants:
-
-### Discord Communication
-
-- **`discord_send_message`**: Send a message to a Discord channel
-- **`discord_get_channel_info`**: Get detailed information about a Discord channel
-- **`discord_bot_status`**: Get the current status and connection info of the Discord bot
-
-### Server Management
-
-- **`discord_list_servers`**: List all Discord servers the bot has access to
-- **`discord_list_channels`**: List all channels in a specific Discord server
-- **`discord_list_roles`**: List all roles in a specific Discord server
-
-### Server Registry
-
-- **`registry_update`**: Update the local registry with current Discord server data
-- **`registry_get_server`**: Get server information by name, alias, or ID
-- **`registry_get_channel`**: Get channel information by name, alias, or ID
-- **`registry_get_role`**: Get role information by name, alias, or ID
-- **`registry_track_context`**: Track entities in conversation context for better natural language understanding
-
-## Features
-
-### Natural Language Entity Resolution
-
-The server includes intelligent entity resolution that allows AI assistants to use natural language references:
-
-- "general channel" → resolves to actual channel ID
-- "admin role" → resolves to actual role ID
-- "main server" → resolves to actual server ID
-
-### Local Server Registry
-
-Maintains a local SQLite database with:
-
-- Server, channel, and role information
-- Natural language aliases for easy reference
-- Conversation context tracking
-- Automatic updates from Discord API
-
-### Robust Error Handling
-
-- Graceful handling of Discord API rate limits
-- Automatic reconnection on connection loss
-- Detailed error messages for troubleshooting
-- Dry-run mode for testing without API calls
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Bot not connecting**: Verify your Discord token is correct and the bot is added to your server
-2. **Permission errors**: Ensure the bot has necessary permissions in your Discord server
-3. **Database errors**: Check that the bot has write permissions for the database file location
-4. **Rate limiting**: The server automatically handles Discord rate limits, but very high usage may cause delays
-
-### Debug Mode
-
-Enable debug logging by setting `LOG_LEVEL=DEBUG` in your MCP configuration:
-
-```json
-{
-  "env": {
-    "DISCORD_TOKEN": "your_token",
-    "LOG_LEVEL": "DEBUG"
-  }
-}
-```
-
-### Testing Configuration
-
-Use dry-run mode to test your configuration without making actual Discord API calls:
-
-```json
-{
-  "env": {
-    "DISCORD_TOKEN": "your_token",
-    "DRY_RUN": "true"
-  }
-}
-```
-
-### Security Considerations
-
-- **Token Security**: Never commit your Discord bot token to version control
-- **Database Location**: Choose a secure location for your database file with appropriate permissions
-- **Guild Allowlist**: Use `GUILD_ALLOWLIST` to restrict which Discord servers the bot can access
-- **Permissions**: Grant your Discord bot only the minimum required permissions
-
-````
-
-## Development
-
-### Local Development Setup
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/yourusername/mcp-discord.git
-   cd mcp-discord
-````
-
-2. Install in development mode:
-
-   ```bash
-   pip install -e ".[dev]"
-   ```
-
-3. Run tests:
-   ```bash
-   pytest
-   ```
-
-### Project Structure
+## Project Structure
 
 ```
-src/discord_mcp/
-├── __init__.py
-├── config.py                    # Configuration management
-├── server.py                    # Main MCP server
-├── server_registry_wrapper.py   # Registry wrapper
-├── discord_client/              # Discord bot implementation
-├── server_registry/             # Local data registry
-├── tools/                       # MCP tool implementations
-├── core/                        # Core utilities
-└── database/                    # Database utilities
+discord-mcp/
+├── src/discord_mcp/          # Main package
+│   ├── server.py             # MCP server entry point
+│   ├── __main__.py           # Module runner (python -m discord_mcp)
+│   ├── config.py             # Configuration
+│   ├── discord_client/       # Discord bot implementation
+│   ├── database/             # SQLite models & repos
+│   ├── tools/                # MCP tool implementations
+│   └── server_registry/      # Legacy entity registry
+├── tests/                    # Test suite
+├── specs/                    # Documentation
+│   ├── implemented/          # Current features
+│   ├── future/               # Planned features
+│   └── ROADMAP.md            # Version roadmap
+├── pyproject.toml            # Package configuration
+└── README.md                 # This file
 ```
+
+## Known Issues & Limitations
+
+- ⚠️ **Alpha quality** - Bugs expected
+- ⚠️ **Limited features** - Only basic tools implemented
+- ⚠️ **No error recovery** - Some edge cases not handled
+- ⚠️ **Database migrations** - Manual schema updates may be needed
+
+See [GitHub Issues](https://github.com/yourusername/mcp-discord/issues) for known bugs.
+
+## Contributing
+
+This is an alpha project - contributions welcome but expect things to change!
+
+1. Test locally with MCP Inspector first
+2. Check [specs/ROADMAP.md](specs/ROADMAP.md) for planned features
+3. Open an issue to discuss changes
+4. Submit PR against `develop` branch
+
+## Release Stages
+
+- **Now (Local)**: Testing with MCP Inspector only
+- **Alpha (0.0.x)**: Published to PyPI, testing with Claude Desktop
+- **Beta (0.1.x)**: Feature-complete, polishing bugs
+- **Release (1.0.0)**: Stable, production-ready
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) file.
+
+## Support
+
+- 📖 **Documentation**: [specs/](specs/) directory
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/mcp-discord/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/mcp-discord/discussions)
+
+---
+
+**Remember**: This is alpha software. Always test in a non-production Discord server first!

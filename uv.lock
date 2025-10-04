@@ -289,7 +289,7 @@ wheels = [
 
 [[package]]
 name = "discord-mcp"
-version = "0.1.0"
+version = "0.0.1a1"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
