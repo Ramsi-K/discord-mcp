@@ -1,7 +1,7 @@
 [project]
 name = "discord-mcp"
-version = "0.1.0"
-description = "Discord MCP server for AI-assisted Discord management"
+version = "0.0.1a1"
+description = "Discord MCP server for AI-assisted Discord management (Alpha)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
