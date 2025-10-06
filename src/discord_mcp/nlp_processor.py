@@ -7,7 +7,7 @@ entity references like "general channel" to actual Discord IDs.
 
 import logging
 from typing import Optional
-from server_registry.api import ServerRegistryAPI
+from .server_registry.api import ServerRegistryAPI
 
 logger = logging.getLogger(__name__)
 

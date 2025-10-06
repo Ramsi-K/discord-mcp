@@ -36,6 +36,72 @@ mcp = FastMCP(
 )
 
 
+# MCP Resources - provide documentation and tool listings
+@mcp.resource("discord://tools/list")
+async def list_all_tools():
+    """List all available Discord MCP tools with descriptions."""
+    return {
+        "core_tools": {
+            "discord_list_servers": "List all servers (guilds) the bot is a member of",
+            "discord_list_channels": "List channels in a Discord server with optional type filtering",
+            "discord_get_channel_info": "Get detailed information about a Discord channel",
+            "discord_bot_status": "Get the current status and health information of the Discord bot",
+            "discord_ping": "Ping Discord to check connection health and optionally verify server access",
+            "discord_get_recent_messages": "Get recent messages from a Discord channel with pagination support",
+            "discord_get_message": "Get a specific message by ID from a Discord channel",
+            "discord_send_message": "Send a message to a Discord channel with optional reply and @everyone support",
+        },
+        "campaign_tools": {
+            "discord_create_campaign": "Create a new reaction opt-in reminder campaign",
+            "discord_list_campaigns": "List all campaigns with optional status filtering",
+            "discord_get_campaign": "Get detailed information about a specific campaign",
+            "discord_update_campaign_status": "Update campaign status (active, completed, cancelled)",
+            "discord_delete_campaign": "Delete a campaign and all its associated opt-ins",
+            "discord_tally_optins": "Fetch reactions from Discord and store deduplicated opt-ins for a campaign",
+            "discord_list_optins": "List opt-ins for a campaign with pagination support",
+            "discord_build_reminder": "Build reminder message with @mention chunking under 2000 characters",
+            "discord_send_reminder": "Send reminder messages with rate limiting and batch processing",
+            "discord_run_due_reminders": "Process scheduled campaigns that are due for reminders",
+        },
+        "search_tools": {
+            "server_info": "Get detailed information about a Discord server",
+            "list_servers": "List all servers the bot is in",
+            "server_channels": "Get all channels in a Discord server",
+            "server_roles": "Get all roles in a Discord server",
+            "find_server": "Find a server by name (supports partial matching)",
+            "find_channel": "Find a channel by name in a server (supports partial matching)",
+            "find_role": "Find a role by name in a server (supports partial matching)",
+        },
+    }
+
+
+@mcp.resource("discord://docs/campaign-flow")
+async def campaign_flow_docs():
+    """Get campaign workflow documentation."""
+    try:
+        from pathlib import Path
+        docs_path = Path(__file__).parent.parent.parent / "docs" / "CAMPAIGN_FLOW.md"
+        if docs_path.exists():
+            return docs_path.read_text(encoding="utf-8")
+        else:
+            return "Campaign flow documentation not found. See docs/CAMPAIGN_FLOW.md in the repository."
+    except Exception as e:
+        return f"Error loading campaign flow documentation: {e}"
+
+
+@mcp.resource("discord://config/info")
+async def config_info():
+    """Get current Discord MCP configuration."""
+    config = Config()
+    return {
+        "database_path": str(config.database_path),
+        "guild_allowlist": config.guild_allowlist,
+        "log_level": config.log_level,
+        "dry_run": config.dry_run,
+        "token_configured": bool(config.discord_token),
+    }
+
+
 # Helper function to ensure Discord bot is ready
 def require_discord_bot(func):
     @wraps(func)

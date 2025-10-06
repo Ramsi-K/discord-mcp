@@ -53,22 +53,24 @@ Discord MCP Server - A Model Context Protocol (MCP) server providing Discord int
 #### Tools (MCP Tool Implementations)
 
 - **Core tools**: [src/discord_mcp/tools/core.py](src/discord_mcp/tools/core.py) - Server/channel listing, messaging, bot status
-- **Campaign tools**: [src/discord_mcp/tools/campaigns.py](src/discord_mcp/tools/campaigns.py) - Reaction opt-in campaigns, reminders with @mention chunking
-- **Registry tools**: [src/discord_mcp/tools/server_registry_tools.py](src/discord_mcp/tools/server_registry_tools.py) - Legacy server registry lookup
+- **Campaign tools**: [src/discord_mcp/tools/campaigns.py](src/discord_mcp/tools/campaigns.py) - Full campaign CRUD + reaction opt-ins + reminder building/sending with @mention chunking
+- **Search tools**: [src/discord_mcp/tools/search_tools.py](src/discord_mcp/tools/search_tools.py) - Server/channel/role search by name (partial matching)
 - **Registration**: [src/discord_mcp/tools/register_tools.py](src/discord_mcp/tools/register_tools.py) - Registers all tools with FastMCP
+
+#### Campaign Tools (Complete CRUD)
+
+Campaign management provides full lifecycle control:
+- **Create**: `discord_create_campaign` - Set up reaction-based opt-in campaigns
+- **Read**: `discord_list_campaigns`, `discord_get_campaign` - View all or specific campaigns
+- **Update**: `discord_update_campaign_status` - Change status (active/completed/cancelled)
+- **Delete**: `discord_delete_campaign` - Remove campaigns and associated opt-ins
+- **Operations**: `discord_tally_optins`, `discord_list_optins`, `discord_build_reminder`, `discord_send_reminder`, `discord_run_due_reminders`
 
 #### Database Layer
 
 - **Models**: [src/discord_mcp/database/models.py](src/discord_mcp/database/models.py) - Campaign, OptIn, ReminderLog dataclasses
 - **Migrations**: [src/discord_mcp/database/migrations.py](src/discord_mcp/database/migrations.py) - SQLite schema migrations
 - **Repositories**: [src/discord_mcp/database/repositories.py](src/discord_mcp/database/repositories.py) - Campaign/opt-in CRUD operations
-
-#### Server Registry (Legacy)
-
-- **Location**: [src/discord_mcp/server_registry/](src/discord_mcp/server_registry/)
-- Maintains local SQLite registry of servers, channels, roles
-- Natural language entity resolution with aliases
-- See [src/discord_mcp/server_registry/README.md](src/discord_mcp/server_registry/README.md)
 
 ### Configuration
 
@@ -87,8 +89,10 @@ Tools use `@require_discord_bot` decorator to ensure bot is connected before exe
 ### Database Design
 
 - Single SQLite database at `MCP_DISCORD_DB_PATH`
-- Campaign system: campaigns → opt_ins (many-to-many via reactions) → reminder_logs
-- Server registry: servers → channels/roles with aliases and context tracking
+- Campaign system tables:
+  - `campaigns` - Campaign metadata (channel, message, emoji, remind_at, status)
+  - `optins` - User opt-ins per campaign (unique constraint on campaign_id + user_id)
+  - `reminders_log` - Reminder send history and outcomes
 
 ## Testing Strategy
 

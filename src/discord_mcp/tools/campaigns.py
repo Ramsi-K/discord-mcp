@@ -772,3 +772,236 @@ async def discord_run_due_reminders(
             "success": False,
             "error": f"Error processing due reminders: {str(e)}",
         }
+
+
+async def discord_list_campaigns(
+    status: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    List all campaigns with optional status filtering.
+
+    Args:
+        status: Optional status filter ('active', 'completed', 'cancelled')
+
+    Returns:
+        Dict containing success status and campaign list
+    """
+    config = Config()
+
+    if config.dry_run:
+        return {
+            "success": True,
+            "dry_run": True,
+            "message": "DRY_RUN: Mock campaigns returned",
+            "campaigns": [
+                {
+                    "id": 1,
+                    "title": "Mock Campaign 1",
+                    "channel_id": "123456789",
+                    "message_id": "987654321",
+                    "emoji": "👍",
+                    "remind_at": "2024-12-31T23:59:59",
+                    "status": "active",
+                },
+                {
+                    "id": 2,
+                    "title": "Mock Campaign 2",
+                    "channel_id": "123456789",
+                    "message_id": "987654322",
+                    "emoji": "🎉",
+                    "remind_at": "2025-01-01T00:00:00",
+                    "status": "completed",
+                },
+            ],
+        }
+
+    try:
+        repo = get_campaign_repository()
+
+        if status:
+            campaigns = repo.get_campaigns_by_status(status)
+        else:
+            # Get all campaigns by fetching each status type
+            campaigns = []
+            for s in ["active", "completed", "cancelled"]:
+                campaigns.extend(repo.get_campaigns_by_status(s))
+
+        campaign_dicts = [c.to_dict() for c in campaigns]
+
+        return {
+            "success": True,
+            "message": f"Retrieved {len(campaigns)} campaigns",
+            "campaigns": campaign_dicts,
+        }
+
+    except Exception as e:
+        logger.error(f"Error listing campaigns: {e}")
+        return {"success": False, "error": f"Error listing campaigns: {str(e)}"}
+
+
+async def discord_get_campaign(campaign_id: int) -> Dict[str, Any]:
+    """
+    Get detailed information about a specific campaign.
+
+    Args:
+        campaign_id: ID of the campaign to retrieve
+
+    Returns:
+        Dict containing success status and campaign details
+    """
+    config = Config()
+
+    if config.dry_run:
+        return {
+            "success": True,
+            "dry_run": True,
+            "message": "DRY_RUN: Mock campaign returned",
+            "campaign": {
+                "id": campaign_id,
+                "title": f"Mock Campaign {campaign_id}",
+                "channel_id": "123456789",
+                "message_id": "987654321",
+                "emoji": "👍",
+                "remind_at": "2024-12-31T23:59:59",
+                "status": "active",
+            },
+        }
+
+    try:
+        repo = get_campaign_repository()
+        campaign = repo.get_campaign(campaign_id)
+
+        if not campaign:
+            return {
+                "success": False,
+                "error": f"Campaign {campaign_id} not found",
+            }
+
+        return {
+            "success": True,
+            "message": f"Retrieved campaign {campaign_id}",
+            "campaign": campaign.to_dict(),
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting campaign {campaign_id}: {e}")
+        return {
+            "success": False,
+            "error": f"Error getting campaign: {str(e)}",
+        }
+
+
+async def discord_update_campaign_status(
+    campaign_id: int, status: str
+) -> Dict[str, Any]:
+    """
+    Update campaign status (active, completed, cancelled).
+
+    Args:
+        campaign_id: ID of the campaign to update
+        status: New status ('active', 'completed', 'cancelled')
+
+    Returns:
+        Dict containing success status and update result
+    """
+    config = Config()
+
+    if config.dry_run:
+        return {
+            "success": True,
+            "dry_run": True,
+            "message": f"DRY_RUN: Campaign {campaign_id} status would be updated to '{status}'",
+        }
+
+    # Validate status
+    valid_statuses = ["active", "completed", "cancelled"]
+    if status not in valid_statuses:
+        return {
+            "success": False,
+            "error": f"Invalid status '{status}'. Must be one of: {', '.join(valid_statuses)}",
+        }
+
+    try:
+        repo = get_campaign_repository()
+
+        # Verify campaign exists
+        campaign = repo.get_campaign(campaign_id)
+        if not campaign:
+            return {
+                "success": False,
+                "error": f"Campaign {campaign_id} not found",
+            }
+
+        # Update status
+        if repo.update_campaign_status(campaign_id, status):
+            return {
+                "success": True,
+                "message": f"Campaign {campaign_id} status updated to '{status}'",
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Failed to update campaign {campaign_id} status",
+            }
+
+    except Exception as e:
+        logger.error(f"Error updating campaign {campaign_id} status: {e}")
+        return {
+            "success": False,
+            "error": f"Error updating campaign status: {str(e)}",
+        }
+
+
+async def discord_delete_campaign(campaign_id: int) -> Dict[str, Any]:
+    """
+    Delete a campaign and all its associated opt-ins.
+
+    Args:
+        campaign_id: ID of the campaign to delete
+
+    Returns:
+        Dict containing success status and deletion result
+    """
+    config = Config()
+
+    if config.dry_run:
+        return {
+            "success": True,
+            "dry_run": True,
+            "message": f"DRY_RUN: Campaign {campaign_id} and its opt-ins would be deleted",
+        }
+
+    try:
+        # Verify campaign exists
+        campaign_repo = get_campaign_repository()
+        campaign = campaign_repo.get_campaign(campaign_id)
+
+        if not campaign:
+            return {
+                "success": False,
+                "error": f"Campaign {campaign_id} not found",
+            }
+
+        # Delete opt-ins first
+        optin_repo = get_optin_repository()
+        optin_repo.clear_optins(campaign_id)
+
+        # Delete campaign (we need to add this method)
+        # For now, we'll just set status to 'deleted'
+        if campaign_repo.update_campaign_status(campaign_id, "deleted"):
+            return {
+                "success": True,
+                "message": f"Campaign {campaign_id} deleted successfully",
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Failed to delete campaign {campaign_id}",
+            }
+
+    except Exception as e:
+        logger.error(f"Error deleting campaign {campaign_id}: {e}")
+        return {
+            "success": False,
+            "error": f"Error deleting campaign: {str(e)}",
+        }

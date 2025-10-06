@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
 ```
 
 **Fields**:
+
 - `id`: Auto-incrementing campaign ID
 - `title`: Optional campaign title/description
 - `channel_id`: Discord channel ID where announcement was posted
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
 - `status`: Campaign status ("active", "completed", "cancelled")
 
 **Constraints**:
+
 - Unique constraint on (channel_id, message_id, emoji) prevents duplicate campaigns
 
 ### opt_ins
@@ -58,6 +60,7 @@ CREATE TABLE IF NOT EXISTS opt_ins (
 ```
 
 **Fields**:
+
 - `id`: Auto-incrementing opt-in ID
 - `campaign_id`: Foreign key to campaigns table
 - `user_id`: Discord user ID who opted in
@@ -65,10 +68,12 @@ CREATE TABLE IF NOT EXISTS opt_ins (
 - `tallied_at`: When this opt-in was recorded
 
 **Constraints**:
+
 - Foreign key to campaigns with CASCADE delete
 - Unique constraint on (campaign_id, user_id) ensures no duplicates
 
 **Indexes**:
+
 ```sql
 CREATE INDEX IF NOT EXISTS idx_opt_ins_campaign ON opt_ins(campaign_id);
 CREATE INDEX IF NOT EXISTS idx_opt_ins_user ON opt_ins(user_id);
@@ -92,6 +97,7 @@ CREATE TABLE IF NOT EXISTS reminder_logs (
 ```
 
 **Fields**:
+
 - `id`: Auto-incrementing log ID
 - `campaign_id`: Foreign key to campaigns table
 - `sent_at`: When reminder was sent
@@ -101,6 +107,7 @@ CREATE TABLE IF NOT EXISTS reminder_logs (
 - `error_message`: Error details if failed
 
 **Constraints**:
+
 - Foreign key to campaigns with CASCADE delete
 
 ## Legacy Server Registry Tables
@@ -119,6 +126,7 @@ These tables exist from the legacy server registry implementation but are not ac
 Database schema is managed via [src/discord_mcp/database/migrations.py](../../src/discord_mcp/database/migrations.py).
 
 On server startup:
+
 1. Connection established to SQLite database
 2. `run_migrations()` creates tables if they don't exist
 3. Future versions will include migration versioning
@@ -163,13 +171,16 @@ active = campaign_repo.get_active_campaigns()
 ## Backup & Maintenance
 
 **Backup**:
+
 - Copy the SQLite file: `cp discord_mcp.db discord_mcp.db.backup`
 
 **Cleanup**:
+
 - Old completed campaigns can be deleted
 - `DELETE FROM campaigns WHERE status = 'completed' AND remind_at < datetime('now', '-30 days')`
 
 **Database Size**:
+
 - Current schema is lightweight
 - Expect ~1KB per campaign + 100 bytes per opt-in
 - 1000 campaigns with 100 opt-ins each ≈ 11MB

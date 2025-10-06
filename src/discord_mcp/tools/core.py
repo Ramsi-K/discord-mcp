@@ -462,6 +462,101 @@ async def discord_bot_status(*, ctx: Context) -> Dict[str, Any]:
         return {"error": f"Failed to get bot status: {str(e)}"}
 
 
+async def discord_ping(
+    server_id: Optional[str] = Field(
+        default=None, description="Optional server ID to check connection to specific server"
+    ),
+    *,
+    ctx: Context,
+) -> Dict[str, Any]:
+    """Ping Discord to check connection health and optionally verify access to a specific server.
+
+    This is a lightweight health check that verifies:
+    - Bot is connected to Discord
+    - Bot is responsive (latency check)
+    - Optionally: Bot has access to a specific server
+
+    Args:
+        server_id: Optional Discord server/guild ID to verify access to
+
+    Returns:
+        Dictionary with connection status, latency, and server access info
+    """
+    await ctx.info(f"Pinging Discord{f' and checking server {server_id}' if server_id else ''}")
+
+    config = await get_config()
+    if not config:
+        return {"error": "Configuration not available"}
+
+    # Handle DRY_RUN mode
+    if config.dry_run:
+        await ctx.info("DRY_RUN mode: Returning mock ping data")
+        return {
+            "status": "connected",
+            "latency_ms": 42.5,
+            "bot_user": "MockBot#1234",
+            "server_access": True if server_id else None,
+            "server_name": "Mock Server" if server_id else None,
+            "dry_run": True,
+        }
+
+    discord_bot = await get_discord_bot(ctx)
+    if not discord_bot:
+        return {
+            "status": "disconnected",
+            "error": "Discord bot is not connected",
+        }
+
+    try:
+        if discord_bot.is_closed():
+            return {
+                "status": "closed",
+                "error": "Discord bot connection is closed",
+            }
+
+        # Basic ping response
+        response = {
+            "status": "connected",
+            "latency_ms": round(discord_bot.latency * 1000, 2),
+            "bot_user": str(discord_bot.user) if discord_bot.user else "Unknown",
+            "bot_id": str(discord_bot.user.id) if discord_bot.user else None,
+        }
+
+        # If server_id provided, check access
+        if server_id:
+            guild = discord_bot.get_guild(int(server_id))
+
+            if not guild:
+                # Try fetching it
+                try:
+                    guild = await discord_bot.fetch_guild(int(server_id))
+                except:
+                    guild = None
+
+            if guild:
+                # Check if allowed by allowlist
+                if not config.is_guild_allowed(server_id):
+                    response["server_access"] = False
+                    response["server_error"] = f"Server {server_id} not in allowlist"
+                else:
+                    response["server_access"] = True
+                    response["server_id"] = str(guild.id)
+                    response["server_name"] = guild.name
+                    response["member_count"] = guild.member_count
+            else:
+                response["server_access"] = False
+                response["server_error"] = f"Bot does not have access to server {server_id}"
+
+        return response
+
+    except Exception as e:
+        await ctx.info(f"Error pinging Discord: {e}")
+        return {
+            "status": "error",
+            "error": f"Failed to ping Discord: {str(e)}"
+        }
+
+
 # Message Management Tools (Task 2.3)
 
 
@@ -798,15 +893,19 @@ async def discord_send_message(
     reply_to_id: Optional[str] = Field(
         default=None, description="Message ID to reply to"
     ),
+    mention_everyone: bool = Field(
+        default=False, description="Allow @everyone and @here mentions (requires permission)"
+    ),
     *,
     ctx: Context,
 ) -> Dict[str, Any]:
-    """Send a message to a Discord channel with optional reply support.
+    """Send a message to a Discord channel with optional reply support and mention controls.
 
     Args:
         channel_id: The Discord channel ID to send the message to
         content: The message content to send
         reply_to_id: Optional message ID to reply to
+        mention_everyone: Allow @everyone and @here mentions (default: False, requires bot permission)
 
     Returns:
         Dictionary containing the sent message information
@@ -876,9 +975,15 @@ async def discord_send_message(
             except:
                 return {"error": f"Invalid reply message ID: {reply_to_id}"}
 
+        # Set up allowed mentions
+        import discord
+        allowed_mentions = discord.AllowedMentions(everyone=mention_everyone)
+
         # Send the message
         sent_message = await channel.send(
-            content=content, reference=message_reference
+            content=content,
+            reference=message_reference,
+            allowed_mentions=allowed_mentions
         )
 
         return {

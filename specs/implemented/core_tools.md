@@ -5,12 +5,14 @@ These are the currently implemented and tested tools in the Discord MCP server.
 ## Server & Channel Information
 
 ### `discord_list_servers`
+
 - **Description**: List all servers (guilds) the bot is a member of
 - **Parameters**: None
 - **Returns**: List of server IDs, names, and member counts
 - **Status**: ✅ Implemented
 
 ### `discord_list_channels`
+
 - **Description**: List channels in a Discord server with optional type filtering
 - **Parameters**:
   - `server_id` (string, required): Discord server/guild ID
@@ -19,6 +21,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Status**: ✅ Implemented
 
 ### `discord_get_channel_info`
+
 - **Description**: Get detailed information about a Discord channel
 - **Parameters**:
   - `channel_id` (string, required): Discord channel ID
@@ -26,6 +29,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Status**: ✅ Implemented
 
 ### `discord_bot_status`
+
 - **Description**: Get the current status and health information of the Discord bot
 - **Parameters**: None
 - **Returns**: Connection status, latency, server count, user info
@@ -34,6 +38,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 ## Message Tools
 
 ### `discord_get_recent_messages`
+
 - **Description**: Get recent messages from a Discord channel with pagination support
 - **Parameters**:
   - `channel_id` (string, required): Discord channel ID
@@ -42,6 +47,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Status**: ✅ Implemented
 
 ### `discord_get_message`
+
 - **Description**: Get a specific message by ID from a Discord channel
 - **Parameters**:
   - `channel_id` (string, required): Discord channel ID
@@ -50,6 +56,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Status**: ✅ Implemented
 
 ### `discord_send_message`
+
 - **Description**: Send a message to a Discord channel with optional reply support
 - **Parameters**:
   - `channel_id` (string, required): Discord channel ID
@@ -62,6 +69,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 ## Campaign & Reminder Tools (v0.1.0)
 
 ### `discord_create_campaign`
+
 - **Description**: Create a new reaction opt-in reminder campaign
 - **Parameters**:
   - `title` (string, optional): Campaign title
@@ -74,6 +82,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Database**: SQLite with campaigns table
 
 ### `discord_tally_optins`
+
 - **Description**: Fetch reactions from Discord and store deduplicated opt-ins for a campaign
 - **Parameters**:
   - `campaign_id` (integer, required): Campaign ID
@@ -82,6 +91,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Idempotent**: Yes (no duplicates)
 
 ### `discord_list_optins`
+
 - **Description**: List opt-ins for a campaign with pagination support
 - **Parameters**:
   - `campaign_id` (integer, required): Campaign ID
@@ -91,6 +101,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Status**: ✅ Implemented
 
 ### `discord_build_reminder`
+
 - **Description**: Build reminder message with @mention chunking under 2000 characters
 - **Parameters**:
   - `campaign_id` (integer, required): Campaign ID
@@ -100,6 +111,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Features**: Automatic chunking, mention formatting
 
 ### `discord_send_reminder`
+
 - **Description**: Send reminder messages with rate limiting and batch processing
 - **Parameters**:
   - `campaign_id` (integer, required): Campaign ID
@@ -109,6 +121,7 @@ These are the currently implemented and tested tools in the Discord MCP server.
 - **Features**: Rate limiting (1 msg/sec), DRY_RUN support
 
 ### `discord_run_due_reminders`
+
 - **Description**: Process scheduled campaigns that are due for reminders
 - **Parameters**: None
 - **Returns**: List of processed campaigns and results
@@ -140,6 +153,7 @@ All tools respect these environment variables:
 ## Testing
 
 All implemented tools have been tested with:
+
 - DRY_RUN mode for offline testing
 - Real Discord API integration
 - Error handling and validation

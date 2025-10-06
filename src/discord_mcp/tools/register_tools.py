@@ -3,7 +3,7 @@ Tools for Discord MCP server.
 """
 
 from mcp.server.fastmcp import FastMCP
-from .server_registry_tools import (
+from .search_tools import (
     get_server_info,
     list_servers,
     get_server_channels,
@@ -17,12 +17,17 @@ from .core import (
     discord_list_channels,
     discord_get_channel_info,
     discord_bot_status,
+    discord_ping,
     discord_get_recent_messages,
     discord_get_message,
     discord_send_message,
 )
 from .campaigns import (
     discord_create_campaign,
+    discord_list_campaigns,
+    discord_get_campaign,
+    discord_update_campaign_status,
+    discord_delete_campaign,
     discord_tally_optins,
     discord_list_optins,
     discord_build_reminder,
@@ -60,6 +65,11 @@ async def register_tools(mcp: FastMCP) -> None:
     )(discord_bot_status)
 
     mcp.tool(
+        name="discord_ping",
+        description="Ping Discord to check connection health and optionally verify server access",
+    )(discord_ping)
+
+    mcp.tool(
         name="discord_get_recent_messages",
         description="Get recent messages from a Discord channel with pagination support",
     )(discord_get_recent_messages)
@@ -79,6 +89,26 @@ async def register_tools(mcp: FastMCP) -> None:
         name="discord_create_campaign",
         description="Create a new reaction opt-in reminder campaign",
     )(discord_create_campaign)
+
+    mcp.tool(
+        name="discord_list_campaigns",
+        description="List all campaigns with optional status filtering",
+    )(discord_list_campaigns)
+
+    mcp.tool(
+        name="discord_get_campaign",
+        description="Get detailed information about a specific campaign",
+    )(discord_get_campaign)
+
+    mcp.tool(
+        name="discord_update_campaign_status",
+        description="Update campaign status (active, completed, cancelled)",
+    )(discord_update_campaign_status)
+
+    mcp.tool(
+        name="discord_delete_campaign",
+        description="Delete a campaign and all its associated opt-ins",
+    )(discord_delete_campaign)
 
     mcp.tool(
         name="discord_tally_optins",
@@ -105,11 +135,11 @@ async def register_tools(mcp: FastMCP) -> None:
         description="Process scheduled campaigns that are due for reminders",
     )(discord_run_due_reminders)
 
-    # Legacy Server Registry Tools (for backward compatibility)
-    mcp.tool(name="server_info")(get_server_info)
-    mcp.tool(name="list_servers")(list_servers)
-    mcp.tool(name="server_channels")(get_server_channels)
-    mcp.tool(name="server_roles")(get_server_roles)
-    mcp.tool(name="find_server")(find_server_by_name)
-    mcp.tool(name="find_channel")(find_channel_by_name)
-    mcp.tool(name="find_role")(find_role_by_name)
+    # Search & Discovery Tools (for finding servers/channels/roles by name)
+    mcp.tool(name="server_info", description="Get detailed information about a Discord server")(get_server_info)
+    mcp.tool(name="list_servers", description="List all servers the bot is in")(list_servers)
+    mcp.tool(name="server_channels", description="Get all channels in a Discord server")(get_server_channels)
+    mcp.tool(name="server_roles", description="Get all roles in a Discord server")(get_server_roles)
+    mcp.tool(name="find_server", description="Find a server by name (supports partial matching)")(find_server_by_name)
+    mcp.tool(name="find_channel", description="Find a channel by name in a server (supports partial matching)")(find_channel_by_name)
+    mcp.tool(name="find_role", description="Find a role by name in a server (supports partial matching)")(find_role_by_name)
