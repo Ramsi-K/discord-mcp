@@ -296,6 +296,7 @@ dependencies = [
     { name = "discord-py" },
     { name = "mcp", extra = ["cli"] },
     { name = "prompt-toolkit" },
+    { name = "pytest-asyncio" },
     { name = "python-dotenv" },
 ]
 
@@ -316,7 +317,8 @@ requires-dist = [
     { name = "mcp", extras = ["cli"], specifier = ">=1.8.0" },
     { name = "prompt-toolkit", specifier = ">=3.0.51" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.1" },
+    { name = "pytest-asyncio", specifier = ">=0.23.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
 ]
 provides-extras = ["dev"]

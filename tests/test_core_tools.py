@@ -203,6 +203,9 @@ class TestCoreTools:
             assert result["dry_run"] is True
             assert result["success"] is True
             assert result["content"] == "Test message"
+            assert "mentions" in result
+            assert result["mentions"]["everyone"] is False
+            assert result["mentions"]["replied_user"] is False
 
     @pytest.mark.asyncio
     async def test_discord_send_message_with_reply_dry_run(
@@ -226,6 +229,69 @@ class TestCoreTools:
             assert result["dry_run"] is True
             assert result["success"] is True
             assert result["reply_to_id"] == "678901234567890123"
+            assert result["mentions"]["everyone"] is False
+
+    @pytest.mark.asyncio
+    async def test_discord_send_message_mentions_dry_run(
+        self, mock_ctx, mock_config
+    ):
+        """Mentions should be appended and allowed when requested."""
+        with patch(
+            "discord_mcp.tools.core.get_config", return_value=mock_config
+        ):
+            result = await discord_send_message(
+                channel_id="345678901234567890",
+                content="Alert",
+                mention_here=True,
+                mention_everyone=True,
+                mention_user_ids="123456789012345678",
+                mention_role_ids="987654321098765432",
+                ctx=mock_ctx,
+            )
+
+            assert result["success"] is True
+            assert result["content"] == (
+                "Alert @here @everyone <@123456789012345678> <@&987654321098765432>"
+            )
+            assert result["mentions"]["everyone"] is True
+            assert result["mentions"]["users"] == [123456789012345678]
+            assert result["mentions"]["roles"] == [987654321098765432]
+
+    @pytest.mark.asyncio
+    async def test_discord_send_message_invalid_user_id(
+        self, mock_ctx, mock_config
+    ):
+        """Invalid mention user IDs should error early."""
+        with patch(
+            "discord_mcp.tools.core.get_config", return_value=mock_config
+        ):
+            result = await discord_send_message(
+                channel_id="345678901234567890",
+                content="Alert",
+                mention_user_ids="not-a-number",
+                ctx=mock_ctx,
+            )
+
+            assert "error" in result
+            assert "Invalid user ID" in result["error"]
+
+    @pytest.mark.asyncio
+    async def test_discord_send_message_invalid_role_id(
+        self, mock_ctx, mock_config
+    ):
+        """Invalid mention role IDs should error early."""
+        with patch(
+            "discord_mcp.tools.core.get_config", return_value=mock_config
+        ):
+            result = await discord_send_message(
+                channel_id="345678901234567890",
+                content="Alert",
+                mention_role_ids="invalid-role",
+                ctx=mock_ctx,
+            )
+
+            assert "error" in result
+            assert "Invalid role ID" in result["error"]
 
     @pytest.mark.asyncio
     async def test_discord_send_message_validation(

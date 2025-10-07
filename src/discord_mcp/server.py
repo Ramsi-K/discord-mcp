@@ -49,7 +49,7 @@ async def list_all_tools():
             "discord_ping": "Ping Discord to check connection health and optionally verify server access",
             "discord_get_recent_messages": "Get recent messages from a Discord channel with pagination support",
             "discord_get_message": "Get a specific message by ID from a Discord channel",
-            "discord_send_message": "Send a message to a Discord channel with optional reply and @everyone support",
+            "discord_send_message": "Send a message to a Discord channel with optional reply and mention controls (@here, @everyone, users, roles)",
         },
         "campaign_tools": {
             "discord_create_campaign": "Create a new reaction opt-in reminder campaign",

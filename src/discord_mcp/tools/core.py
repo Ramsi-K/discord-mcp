@@ -4,9 +4,10 @@ Implements the essential Discord functionality for MCP integration.
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, Iterable
 from functools import wraps
 from pydantic import Field
+from pydantic.fields import FieldInfo
 from mcp.server.fastmcp import Context
 
 logger = logging.getLogger(__name__)
@@ -929,6 +930,121 @@ async def discord_get_message(
         return {"error": f"Failed to get message: {str(e)}"}
 
 
+def _coerce_field_bool(value: Any) -> bool:
+    """Convert Field defaults or raw inputs to a boolean."""
+    if isinstance(value, FieldInfo):
+        value = value.default
+    return bool(value)
+
+
+def _coerce_field_sequence(value: Any) -> Iterable[Any]:
+    """Normalize Field defaults or single values into an iterable."""
+    if isinstance(value, FieldInfo):
+        value = value.default
+
+    if value in (None, ...):
+        return []
+
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return []
+        if "," in stripped:
+            chunks = stripped.split(",")
+        else:
+            chunks = stripped.split()
+        return [chunk.strip() for chunk in chunks if chunk.strip()]
+
+    if isinstance(value, int):
+        return [value]
+
+    try:
+        return list(value)
+    except TypeError:
+        return [value]
+
+
+def _coerce_to_int_list(raw_values: Any, *, label: str) -> List[int]:
+    """Convert a raw sequence of IDs to unique integers, validating input."""
+    normalized_values = []
+    seen_values = set()
+
+    for item in _coerce_field_sequence(raw_values):
+        if isinstance(item, FieldInfo):
+            item = item.default
+        if item in (None, ...):
+            continue
+
+        item_str = str(item).strip()
+        if not item_str:
+            continue
+
+        try:
+            item_int = int(item_str)
+        except (TypeError, ValueError):
+            raise ValueError(f"Invalid {label} ID: {item}")
+
+        if item_int in seen_values:
+            continue
+
+        seen_values.add(item_int)
+        normalized_values.append(item_int)
+
+    return normalized_values
+
+
+def _prepare_message_mentions(
+    base_content: str,
+    *,
+    mention_everyone: Any,
+    mention_here: Any,
+    mention_user_ids: Any,
+    mention_role_ids: Any,
+) -> tuple[str, Dict[str, Any]]:
+    """Build the message content and AllowedMentions kwargs from mention inputs."""
+    include_everyone = _coerce_field_bool(mention_everyone)
+    include_here = _coerce_field_bool(mention_here)
+
+    user_ids = _coerce_to_int_list(mention_user_ids, label="user")
+    role_ids = _coerce_to_int_list(mention_role_ids, label="role")
+
+    content_to_send = base_content
+    mention_fragments: List[str] = []
+
+    if include_here and "@here" not in content_to_send:
+        mention_fragments.append("@here")
+    if include_everyone and "@everyone" not in content_to_send:
+        mention_fragments.append("@everyone")
+
+    for user_id in user_ids:
+        mention_tag = f"<@{user_id}>"
+        if mention_tag not in content_to_send:
+            mention_fragments.append(mention_tag)
+
+    for role_id in role_ids:
+        mention_tag = f"<@&{role_id}>"
+        if mention_tag not in content_to_send:
+            mention_fragments.append(mention_tag)
+
+    if mention_fragments:
+        mention_suffix = " ".join(dict.fromkeys(mention_fragments))
+        if content_to_send and not content_to_send.endswith(" "):
+            content_to_send = f"{content_to_send} {mention_suffix}"
+        else:
+            content_to_send = f"{content_to_send}{mention_suffix}"
+
+    allowed_kwargs: Dict[str, Any] = {
+        "everyone": include_everyone or include_here,
+        "replied_user": False,
+    }
+    if user_ids:
+        allowed_kwargs["users"] = user_ids
+    if role_ids:
+        allowed_kwargs["roles"] = role_ids
+
+    return content_to_send, allowed_kwargs
+
+
 @require_bot
 async def discord_send_message(
     channel_id: str = Field(description="Discord channel ID"),
@@ -937,7 +1053,20 @@ async def discord_send_message(
         default=None, description="Message ID to reply to"
     ),
     mention_everyone: bool = Field(
-        default=False, description="Allow @everyone and @here mentions (requires permission)"
+        default=False,
+        description="Allow @everyone mentions (requires permission)",
+    ),
+    mention_here: bool = Field(
+        default=False,
+        description="Include an @here mention in the message (requires permission)",
+    ),
+    mention_user_ids: str = Field(
+        default="",
+        description="Comma or space separated list of user IDs to mention",
+    ),
+    mention_role_ids: str = Field(
+        default="",
+        description="Comma or space separated list of role IDs to mention",
     ),
     *,
     ctx: Context,
@@ -948,7 +1077,10 @@ async def discord_send_message(
         channel_id: The Discord channel ID to send the message to
         content: The message content to send
         reply_to_id: Optional message ID to reply to
-        mention_everyone: Allow @everyone and @here mentions (default: False, requires bot permission)
+        mention_everyone: Allow @everyone mentions (default: False, requires bot permission)
+        mention_here: Include an @here mention (default: False, requires bot permission)
+        mention_user_ids: User IDs to mention (comma-separated string or list)
+        mention_role_ids: Role IDs to mention (comma-separated string or list)
 
     Returns:
         Dictionary containing the sent message information
@@ -959,11 +1091,40 @@ async def discord_send_message(
     if not config:
         return {"error": "Configuration not available"}
 
+    # When called directly (e.g., unit tests), Field defaults arrive as FieldInfo objects.
+    if isinstance(mention_everyone, FieldInfo):
+        mention_everyone = bool(mention_everyone.default or False)
+    if isinstance(mention_here, FieldInfo):
+        mention_here = bool(mention_here.default or False)
+    if isinstance(mention_user_ids, FieldInfo):
+        mention_user_ids = mention_user_ids.default
+    if mention_user_ids is None:
+        mention_user_ids = []
+
     # Validate message content
     if not content or len(content.strip()) == 0:
         return {"error": "Message content cannot be empty"}
 
-    if len(content) > 2000:
+    # Prepare mentions and updated content
+    try:
+        content_to_send, allowed_kwargs = _prepare_message_mentions(
+            content,
+            mention_everyone=mention_everyone,
+            mention_here=mention_here,
+            mention_user_ids=mention_user_ids,
+            mention_role_ids=mention_role_ids,
+        )
+    except ValueError as exc:
+        return {"error": str(exc)}
+
+    mentions_metadata = {
+        "everyone": bool(allowed_kwargs.get("everyone")),
+        "replied_user": bool(allowed_kwargs.get("replied_user")),
+        "users": list(allowed_kwargs.get("users", [])),
+        "roles": list(allowed_kwargs.get("roles", [])),
+    }
+
+    if len(content_to_send) > 2000:
         return {"error": "Message content cannot exceed 2000 characters"}
 
     # Handle DRY_RUN mode
@@ -973,9 +1134,10 @@ async def discord_send_message(
             "success": True,
             "message_id": "dry_run_message_id_123456789",
             "channel_id": channel_id,
-            "content": content,
+            "content": content_to_send,
             "timestamp": "2024-01-01T12:00:00.000000+00:00",
             "reply_to_id": reply_to_id,
+            "mentions": mentions_metadata,
             "dry_run": True,
         }
 
@@ -1020,11 +1182,21 @@ async def discord_send_message(
 
         # Set up allowed mentions
         import discord
-        allowed_mentions = discord.AllowedMentions(everyone=mention_everyone)
+
+        if allowed_kwargs.get("users"):
+            allowed_kwargs["users"] = [
+                discord.Object(id=user_id) for user_id in allowed_kwargs["users"]
+            ]
+        if allowed_kwargs.get("roles"):
+            allowed_kwargs["roles"] = [
+                discord.Object(id=role_id) for role_id in allowed_kwargs["roles"]
+            ]
+
+        allowed_mentions = discord.AllowedMentions(**allowed_kwargs)
 
         # Send the message
         sent_message = await channel.send(
-            content=content,
+            content=content_to_send,
             reference=message_reference,
             allowed_mentions=allowed_mentions
         )
@@ -1037,6 +1209,7 @@ async def discord_send_message(
             "content": sent_message.content,
             "timestamp": sent_message.created_at.isoformat(),
             "reply_to_id": reply_to_id,
+            "mentions": mentions_metadata,
             "author": {
                 "id": str(sent_message.author.id),
                 "username": sent_message.author.name,
