@@ -2,6 +2,7 @@
 """
 Simple real Discord MCP test - focuses on core functionality
 """
+
 import asyncio
 import os
 import sys
@@ -57,9 +58,7 @@ async def test_discord_mcp():
         # Since we don't know the exact channel IDs, let's test the error handling
         try:
             # This should fail gracefully
-            test_result = await discord_get_channel_info(
-                channel_id="123456789"
-            )
+            test_result = await discord_get_channel_info(channel_id="123456789")
             print(f"   Test channel result: {test_result}")
         except Exception as e:
             print(f"   Expected error for invalid channel: {e}")
@@ -85,9 +84,7 @@ async def test_discord_mcp():
         print("   1. The Discord MCP server is working correctly")
         print("   2. You can now configure it in your MCP client")
         print("   3. Use the example-mcp-config.json as a template")
-        print(
-            "   4. Replace YOUR_DISCORD_BOT_TOKEN_HERE with your actual token"
-        )
+        print("   4. Replace YOUR_DISCORD_BOT_TOKEN_HERE with your actual token")
         print("   5. Test with real channel IDs from your Discord servers")
 
         return True
@@ -134,9 +131,7 @@ async def show_mcp_config_example():
     print("\n💡 Configuration Tips:")
     print("   • Replace YOUR_ACTUAL_DISCORD_BOT_TOKEN with your real token")
     print("   • Adjust the database path as needed")
-    print(
-        "   • Set DRY_RUN to 'true' for testing without sending real messages"
-    )
+    print("   • Set DRY_RUN to 'true' for testing without sending real messages")
     print("   • Add more tools to autoApprove as needed")
 
 

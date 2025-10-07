@@ -208,7 +208,7 @@ class RoleRepository:
         try:
             self.db.execute_update(
                 """
-                UPDATE roles 
+                UPDATE roles
                 SET name = ?, color = ?, position = ?, mentionable = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """,
@@ -262,9 +262,7 @@ class RoleRepository:
             )
             return True
         except Exception as e:
-            logger.error(
-                f"Error adding role alias {alias} for role {role_id}: {e}"
-            )
+            logger.error(f"Error adding role alias {alias} for role {role_id}: {e}")
             return False
 
     def _row_to_role(self, row: Dict[str, Any]) -> Role:

@@ -2,6 +2,7 @@
 """
 Test MCP tools with real Discord API calls
 """
+
 import asyncio
 import os
 import sys
@@ -81,16 +82,12 @@ async def test_mcp_tools():
 
                 if "id" in channel_data:
                     channel_id = channel_data["id"]
-                    info_result = await discord_get_channel_info(
-                        channel_id=channel_id
-                    )
+                    info_result = await discord_get_channel_info(channel_id=channel_id)
                     print(f"   Result: {info_result}")
 
                     # Test 6: Send Message (commented out to avoid spam)
                     print("\n6️⃣ Testing discord_send_message (dry run)...")
-                    print(
-                        "   Note: Uncomment below to test real message sending"
-                    )
+                    print("   Note: Uncomment below to test real message sending")
                     # message_result = await discord_send_message(
                     #     channel_id=channel_id,
                     #     message="🧪 Test message from Discord MCP tools!"
@@ -123,7 +120,7 @@ async def test_direct_message_sending():
     try:
         # Replace with actual channel ID you want to test with
         test_channel_id = "YOUR_CHANNEL_ID_HERE"
-        
+
         message_result = await discord_send_message(
             channel_id=test_channel_id,
             message="🧪 Test message from Discord MCP! This is a real test."

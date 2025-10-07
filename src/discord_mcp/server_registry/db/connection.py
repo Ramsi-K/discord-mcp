@@ -23,18 +23,18 @@ class DatabaseConnection:
         if cls._instance is None:
             cls._instance = super(DatabaseConnection, cls).__new__(cls)
             cls._instance._connection = None
-            
+
             # Check environment variable first, then parameter, then default
             if not db_path:
                 db_path = os.getenv("MCP_DISCORD_DB_PATH")
-            
+
             if not db_path:
                 # Default to a file in the user's home directory
                 home_dir = os.path.expanduser("~")
                 db_dir = os.path.join(home_dir, ".mcp_discord")
                 os.makedirs(db_dir, exist_ok=True)
                 db_path = os.path.join(db_dir, "server_registry.db")
-            
+
             cls._instance._db_path = db_path
             logger.info(f"Using database at: {db_path}")
         return cls._instance

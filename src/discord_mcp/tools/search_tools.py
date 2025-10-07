@@ -95,9 +95,7 @@ async def get_server_info(
             guild = await discord_bot.fetch_guild(int(server_id))
 
         if not guild:
-            return {
-                "error": f"Server {server_id} not found or bot not in server"
-            }
+            return {"error": f"Server {server_id} not found or bot not in server"}
 
         # Get bot's permissions in the server
         bot_member = guild.get_member(discord_bot.user.id)
@@ -109,9 +107,7 @@ async def get_server_info(
             "description": guild.description,
             "member_count": guild.member_count,
             "owner_id": str(guild.owner_id) if guild.owner_id else None,
-            "created_at": (
-                guild.created_at.isoformat() if guild.created_at else None
-            ),
+            "created_at": (guild.created_at.isoformat() if guild.created_at else None),
             "icon_url": str(guild.icon.url) if guild.icon else None,
             "banner_url": str(guild.banner.url) if guild.banner else None,
             "verification_level": str(guild.verification_level),
@@ -120,17 +116,13 @@ async def get_server_info(
                     bot_permissions.administrator if bot_permissions else False
                 ),
                 "manage_channels": (
-                    bot_permissions.manage_channels
-                    if bot_permissions
-                    else False
+                    bot_permissions.manage_channels if bot_permissions else False
                 ),
                 "manage_roles": (
                     bot_permissions.manage_roles if bot_permissions else False
                 ),
                 "manage_messages": (
-                    bot_permissions.manage_messages
-                    if bot_permissions
-                    else False
+                    bot_permissions.manage_messages if bot_permissions else False
                 ),
                 "send_messages": (
                     bot_permissions.send_messages if bot_permissions else False
@@ -139,9 +131,7 @@ async def get_server_info(
                     bot_permissions.embed_links if bot_permissions else False
                 ),
                 "mention_everyone": (
-                    bot_permissions.mention_everyone
-                    if bot_permissions
-                    else False
+                    bot_permissions.mention_everyone if bot_permissions else False
                 ),
             },
         }
@@ -199,9 +189,7 @@ async def list_servers(*, ctx: Context) -> Dict[str, Any]:
                     "id": str(guild.id),
                     "name": guild.name,
                     "member_count": guild.member_count,
-                    "owner_id": (
-                        str(guild.owner_id) if guild.owner_id else None
-                    ),
+                    "owner_id": (str(guild.owner_id) if guild.owner_id else None),
                 }
             )
 
@@ -272,9 +260,7 @@ async def get_server_channels(
             guild = await discord_bot.fetch_guild(int(server_id))
 
         if not guild:
-            return {
-                "error": f"Server {server_id} not found or bot not in server"
-            }
+            return {"error": f"Server {server_id} not found or bot not in server"}
 
         channels = []
         for channel in guild.channels:
@@ -283,9 +269,7 @@ async def get_server_channels(
                 "name": channel.name,
                 "type": str(channel.type),
                 "position": channel.position,
-                "category": (
-                    channel.category.name if channel.category else None
-                ),
+                "category": (channel.category.name if channel.category else None),
             }
 
             # Add text channel specific info
@@ -371,9 +355,7 @@ async def get_server_roles(
             guild = await discord_bot.fetch_guild(int(server_id))
 
         if not guild:
-            return {
-                "error": f"Server {server_id} not found or bot not in server"
-            }
+            return {"error": f"Server {server_id} not found or bot not in server"}
 
         roles = []
         for role in guild.roles:
@@ -556,9 +538,7 @@ async def find_channel_by_name(
             guild = await discord_bot.fetch_guild(int(server_id))
 
         if not guild:
-            return {
-                "error": f"Server {server_id} not found or bot not in server"
-            }
+            return {"error": f"Server {server_id} not found or bot not in server"}
 
         matches = []
         name_lower = name.lower()
@@ -659,9 +639,7 @@ async def find_role_by_name(
             guild = await discord_bot.fetch_guild(int(server_id))
 
         if not guild:
-            return {
-                "error": f"Server {server_id} not found or bot not in server"
-            }
+            return {"error": f"Server {server_id} not found or bot not in server"}
 
         matches = []
         name_lower = name.lower()

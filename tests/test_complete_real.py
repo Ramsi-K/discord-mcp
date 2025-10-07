@@ -2,6 +2,7 @@
 """
 Complete real Discord MCP test - connects and tests actual functionality
 """
+
 import asyncio
 import os
 import sys
@@ -83,9 +84,7 @@ async def test_complete_functionality():
                 print(f"   Channel info: {channel_info}")
 
                 # Test 6: Send a test message (optional)
-                print(
-                    f"\n6️⃣ Testing message sending to #{test_channel.name}..."
-                )
+                print(f"\n6️⃣ Testing message sending to #{test_channel.name}...")
 
                 # Check if it's a text channel we can send to
                 if test_channel.type in ["text", "TextChannel", 0]:
@@ -99,9 +98,7 @@ async def test_complete_functionality():
                     if message_result.get("success"):
                         print("   ✅ Message sent successfully!")
                     else:
-                        print(
-                            f"   ❌ Message failed: {message_result.get('error')}"
-                        )
+                        print(f"   ❌ Message failed: {message_result.get('error')}")
                 else:
                     print(
                         f"   ⚠️  Channel type '{test_channel.type}' not suitable for messages"
@@ -128,15 +125,15 @@ async def test_message_to_specific_channel():
     try:
         # Replace with your actual channel ID
         channel_id = "YOUR_CHANNEL_ID_HERE"
-        
+
         message_result = await discord_send_message(
             channel_id=channel_id,
             message="🎉 **Manual Test Message**\n\nThis is a targeted test message to verify Discord MCP is working perfectly!"
         )
-        
+
         print(f"   Result: {message_result}")
         return message_result.get('success', False)
-        
+
     except Exception as e:
         print(f"   Error: {e}")
         return False

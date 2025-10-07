@@ -11,18 +11,14 @@ class Claude:
     def add_user_message(self, messages: list, message):
         user_message = {
             "role": "user",
-            "content": (
-                message.content if isinstance(message, Message) else message
-            ),
+            "content": (message.content if isinstance(message, Message) else message),
         }
         messages.append(user_message)
 
     def add_assistant_message(self, messages: list, message):
         assistant_message = {
             "role": "assistant",
-            "content": (
-                message.content if isinstance(message, Message) else message
-            ),
+            "content": (message.content if isinstance(message, Message) else message),
         }
         messages.append(assistant_message)
 

@@ -2,6 +2,7 @@
 """
 Debug guild connectivity issues
 """
+
 import asyncio
 import os
 import sys

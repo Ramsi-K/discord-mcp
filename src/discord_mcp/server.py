@@ -80,6 +80,7 @@ async def campaign_flow_docs():
     """Get campaign workflow documentation."""
     try:
         from pathlib import Path
+
         docs_path = Path(__file__).parent.parent.parent / "docs" / "CAMPAIGN_FLOW.md"
         if docs_path.exists():
             return docs_path.read_text(encoding="utf-8")
@@ -143,9 +144,7 @@ async def ensure_bot_running(token: str = "") -> dict:
             "success": True,
             "message": "Bot is already running",
             "bot_user": str(discord_bot.user),
-            "guild_count": (
-                len(discord_bot.guilds) if discord_bot.guilds else 0
-            ),
+            "guild_count": (len(discord_bot.guilds) if discord_bot.guilds else 0),
         }
 
     try:
@@ -162,9 +161,7 @@ async def ensure_bot_running(token: str = "") -> dict:
         max_wait = 15  # seconds
         for i in range(max_wait):
             if discord_bot.user:
-                logger.info(
-                    f"Bot connected after {i+1} seconds as {discord_bot.user}"
-                )
+                logger.info(f"Bot connected after {i+1} seconds as {discord_bot.user}")
                 # Wait a bit more for guilds to load
                 logger.info("Waiting for guilds to load...")
                 for j in range(5):  # Wait up to 5 more seconds for guilds
@@ -205,9 +202,7 @@ async def ensure_bot_running(token: str = "") -> dict:
             "success": True,
             "message": "Discord bot started successfully",
             "bot_user": str(discord_bot.user),
-            "guild_count": (
-                len(discord_bot.guilds) if discord_bot.guilds else 0
-            ),
+            "guild_count": (len(discord_bot.guilds) if discord_bot.guilds else 0),
         }
 
     except Exception as e:
@@ -368,9 +363,7 @@ async def registry_update(server_id: str = ""):
         return {"error": "Server registry not initialized"}
 
     try:
-        result = await registry.update_registry(
-            server_id if server_id else None
-        )
+        result = await registry.update_registry(server_id if server_id else None)
         return result
     except Exception as e:
         logger.error(f"Error updating registry: {str(e)}")
@@ -475,9 +468,7 @@ def run_server() -> None:
     if config.guild_allowlist:
         logger.info(f"Guild allowlist: {config.guild_allowlist}")
     else:
-        logger.info(
-            "No guild allowlist configured - bot will work with all guilds"
-        )
+        logger.info("No guild allowlist configured - bot will work with all guilds")
 
     # Update MCP server log level
     mcp.log_level = config.log_level

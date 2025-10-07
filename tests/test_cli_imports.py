@@ -2,6 +2,7 @@
 """
 Test CLI imports and basic functionality
 """
+
 import sys
 from pathlib import Path
 

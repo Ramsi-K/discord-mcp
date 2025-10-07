@@ -34,17 +34,11 @@ class DiscordMCPBot(commands.Bot):
         intents.members = True
 
         # Initialize the bot
-        super().__init__(
-            command_prefix="!", intents=intents, help_command=None
-        )
+        super().__init__(command_prefix="!", intents=intents, help_command=None)
 
-    async def send_direct_message(
-        self, channel_id, message, mention_everyone=False
-    ):
+    async def send_direct_message(self, channel_id, message, mention_everyone=False):
         """Send a message directly to a channel."""
-        logger.info(
-            f"Sending direct message to channel {channel_id}: {message}"
-        )
+        logger.info(f"Sending direct message to channel {channel_id}: {message}")
 
         # Check dry run mode
         if self.config.dry_run:
@@ -74,9 +68,7 @@ class DiscordMCPBot(commands.Bot):
                 }
 
             # Send the message
-            allowed_mentions = discord.AllowedMentions(
-                everyone=mention_everyone
-            )
+            allowed_mentions = discord.AllowedMentions(everyone=mention_everyone)
             sent_message = await channel.send(
                 content=message, allowed_mentions=allowed_mentions
             )
@@ -163,9 +155,7 @@ class DiscordMCPBot(commands.Bot):
                 for guild in self.guilds
                 if self.config.is_guild_allowed(str(guild.id))
             ]
-            logger.info(
-                f"Allowed guilds: {len(allowed_guilds)}/{len(self.guilds)}"
-            )
+            logger.info(f"Allowed guilds: {len(allowed_guilds)}/{len(self.guilds)}")
 
         # Set status
         await self.change_presence(
@@ -184,9 +174,7 @@ class BasicCommands(commands.Cog):
     @commands.command(name="ping")
     async def ping(self, ctx):
         """Simple ping command to check if the bot is alive."""
-        await ctx.send(
-            f"Pong! Bot latency: {round(self.bot.latency * 1000)}ms"
-        )
+        await ctx.send(f"Pong! Bot latency: {round(self.bot.latency * 1000)}ms")
 
     @commands.command(name="send")
     async def send_message(self, ctx, channel_id: str, *, message: str):

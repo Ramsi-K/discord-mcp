@@ -65,9 +65,7 @@ async def discord_create_campaign(
     try:
         # Parse remind_at datetime
         try:
-            remind_datetime = datetime.fromisoformat(
-                remind_at.replace("Z", "+00:00")
-            )
+            remind_datetime = datetime.fromisoformat(remind_at.replace("Z", "+00:00"))
         except ValueError as e:
             return {
                 "success": False,
@@ -90,9 +88,7 @@ async def discord_create_campaign(
 
         if campaign_id:
             campaign.id = campaign_id
-            logger.info(
-                f"Created campaign {campaign_id} for message {message_id}"
-            )
+            logger.info(f"Created campaign {campaign_id} for message {message_id}")
             return {
                 "success": True,
                 "message": f"Campaign created successfully with ID {campaign_id}",
@@ -264,9 +260,7 @@ async def discord_list_optins(
     if config.dry_run:
         mock_optins = []
         for i in range(min(limit, 10)):
-            user_id = str(
-                100000 + i + (int(after_user_id) if after_user_id else 0)
-            )
+            user_id = str(100000 + i + (int(after_user_id) if after_user_id else 0))
             mock_optins.append(
                 {
                     "id": i + 1,
@@ -398,9 +392,7 @@ async def discord_build_reminder(
 
         title = campaign.title or f"Campaign {campaign_id}"
         base_message = template.replace("{title}", title)
-        base_message_without_mentions = base_message.replace(
-            "{mentions}", ""
-        ).strip()
+        base_message_without_mentions = base_message.replace("{mentions}", "").strip()
 
         # Calculate available space for mentions (Discord limit is 2000 chars)
         max_message_length = 2000
@@ -417,15 +409,10 @@ async def discord_build_reminder(
             mention = f"<@{optin.user_id}>"
             mention_length = len(mention) + 1  # +1 for space
 
-            if (
-                current_length + mention_length > available_space
-                and current_mentions
-            ):
+            if current_length + mention_length > available_space and current_mentions:
                 # Create chunk with current mentions
                 mentions_text = " ".join(current_mentions)
-                chunk_message = base_message.replace(
-                    "{mentions}", mentions_text
-                )
+                chunk_message = base_message.replace("{mentions}", mentions_text)
                 message_chunks.append(chunk_message)
 
                 # Start new chunk
@@ -445,9 +432,7 @@ async def discord_build_reminder(
         if len(message_chunks) > 1:
             for i, chunk in enumerate(message_chunks):
                 if i > 0:  # Add continuation marker to subsequent chunks
-                    continuation_marker = (
-                        f" (continued {i+1}/{len(message_chunks)})"
-                    )
+                    continuation_marker = f" (continued {i+1}/{len(message_chunks)})"
                     # Insert continuation marker after the title
                     lines = chunk.split("\n")
                     if len(lines) > 0:
@@ -470,9 +455,7 @@ async def discord_build_reminder(
         }
 
     except Exception as e:
-        logger.error(
-            f"Error building reminder for campaign {campaign_id}: {e}"
-        )
+        logger.error(f"Error building reminder for campaign {campaign_id}: {e}")
         return {
             "success": False,
             "error": f"Error building reminder: {str(e)}",
@@ -710,22 +693,16 @@ async def discord_run_due_reminders(
 
         for campaign in due_campaigns:
             try:
-                logger.info(
-                    f"Processing due campaign {campaign.id}: {campaign.title}"
-                )
+                logger.info(f"Processing due campaign {campaign.id}: {campaign.title}")
 
                 # Send reminder for this campaign
-                send_result = await discord_send_reminder(
-                    campaign.id, dry_run=False
-                )
+                send_result = await discord_send_reminder(campaign.id, dry_run=False)
 
                 processed += 1
 
                 if send_result["success"]:
                     successful += 1
-                    logger.info(
-                        f"Successfully processed campaign {campaign.id}"
-                    )
+                    logger.info(f"Successfully processed campaign {campaign.id}")
                 else:
                     failed += 1
                     error_msg = f"Campaign {campaign.id}: {send_result.get('error', 'Unknown error')}"
@@ -744,9 +721,7 @@ async def discord_run_due_reminders(
                 failed += 1
                 error_msg = f"Campaign {campaign.id}: Exception - {str(e)}"
                 errors.append(error_msg)
-                logger.error(
-                    f"Exception processing campaign {campaign.id}: {e}"
-                )
+                logger.error(f"Exception processing campaign {campaign.id}: {e}")
 
         success = successful > 0 or (processed == 0)
         message = f"Processed {processed} due campaigns: {successful} successful, {failed} failed"

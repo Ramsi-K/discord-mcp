@@ -25,9 +25,7 @@ class ContextRepository:
         """
         self.db = db or DatabaseConnection()
 
-    def get_context_by_id(
-        self, context_id: int
-    ) -> Optional[ConversationContext]:
+    def get_context_by_id(self, context_id: int) -> Optional[ConversationContext]:
         """
         Get a context by ID.
 
@@ -40,9 +38,7 @@ class ContextRepository:
         # This is a stub implementation
         return None
 
-    def get_context_by_user_id(
-        self, user_id: str
-    ) -> Optional[ConversationContext]:
+    def get_context_by_user_id(self, user_id: str) -> Optional[ConversationContext]:
         """
         Get a context by user ID.
 
@@ -55,9 +51,7 @@ class ContextRepository:
         # This is a stub implementation
         return None
 
-    def create_context(
-        self, context: ConversationContext
-    ) -> ConversationContext:
+    def create_context(self, context: ConversationContext) -> ConversationContext:
         """
         Create a new context.
 
@@ -71,9 +65,7 @@ class ContextRepository:
         context.id = 1  # Simulate ID assignment
         return context
 
-    def update_context(
-        self, context: ConversationContext
-    ) -> ConversationContext:
+    def update_context(self, context: ConversationContext) -> ConversationContext:
         """
         Update a context.
 

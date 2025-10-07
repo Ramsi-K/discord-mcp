@@ -27,9 +27,7 @@ class MCPClient:
             "MCP_DISCORD_DB_PATH" not in self._env
             and "MCP_DISCORD_DB_PATH" in os.environ
         ):
-            self._env["MCP_DISCORD_DB_PATH"] = os.environ[
-                "MCP_DISCORD_DB_PATH"
-            ]
+            self._env["MCP_DISCORD_DB_PATH"] = os.environ["MCP_DISCORD_DB_PATH"]
 
     async def connect(self):
         server_params = StdioServerParameters(
@@ -70,9 +68,7 @@ class MCPClient:
     async def list_prompts(self) -> list[types.Prompt]:
         result = await self.session().list_prompts()
         if result is None:
-            raise RuntimeError(
-                "Failed to retrieve prompts from the MCP server."
-            )
+            raise RuntimeError("Failed to retrieve prompts from the MCP server.")
         return result.prompts
 
     async def get_prompt(self, prompt_name, args: dict[str, str]):

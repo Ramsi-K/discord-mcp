@@ -139,10 +139,7 @@ class AliasGeneratorService:
             aliases.append(f"{role.name.lower()}s")
 
         # Common role aliases
-        if (
-            role.name.lower() == "admin"
-            or role.name.lower() == "administrator"
-        ):
+        if role.name.lower() == "admin" or role.name.lower() == "administrator":
             aliases.append("admin")
             aliases.append("administrator")
             aliases.append("admins")

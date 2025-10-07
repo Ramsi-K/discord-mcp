@@ -9,9 +9,7 @@ import logging
 from dotenv import load_dotenv
 
 # Add the parent directory to the path so we can import the restructured package
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
