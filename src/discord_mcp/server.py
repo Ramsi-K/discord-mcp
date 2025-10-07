@@ -224,117 +224,8 @@ async def discord_start_bot(token: str = ""):
     return await ensure_bot_running(token)
 
 
-@mcp.tool(
-    name="discord_send_message",
-    description="Send a message to a Discord channel",
-)
-@require_discord_bot
-async def discord_send_message(
-    channel_id: str,
-    message: str,
-    mention_everyone: bool = False,
-    server_id: str = None,
-    token: str = "",
-):
-    """Send a message to a Discord channel, starting bot if needed.
-
-    The channel_id can be a channel name, alias, or ID. If it's a name or alias,
-    it will be resolved to an ID using the server registry.
-    """
-    global discord_bot
-
-    try:
-        # Resolve channel ID if it's not a numeric ID
-        if not channel_id.isdigit():
-            resolver = await get_entity_resolver()
-            if resolver:
-                resolved_id = await resolver.resolve_channel(
-                    channel_id, server_id
-                )
-                logger.info(
-                    f"Resolved channel '{channel_id}' to ID '{resolved_id}'"
-                )
-                channel_id = resolved_id
-
-        logger.info(f"Sending message to channel {channel_id}")
-        return await discord_bot.send_direct_message(
-            channel_id, message, mention_everyone
-        )
-    except Exception as e:
-        logger.error(f"Error sending message: {str(e)}")
-        return {"error": f"Error sending message: {str(e)}"}
-
-
-@mcp.tool(
-    name="discord_get_channel_info",
-    description="Get information about a Discord channel",
-)
-@require_discord_bot
-async def discord_get_channel_info(
-    channel_id: str, server_id: str = None, token: str = ""
-):
-    """Get information about a Discord channel, starting bot if needed.
-
-    The channel_id can be a channel name, alias, or ID. If it's a name or alias,
-    it will be resolved to an ID using the server registry.
-    """
-    global discord_bot
-
-    try:
-        # Resolve channel ID if it's not a numeric ID
-        if not channel_id.isdigit():
-            resolver = await get_entity_resolver()
-            if resolver:
-                resolved_id = await resolver.resolve_channel(
-                    channel_id, server_id
-                )
-                logger.info(
-                    f"Resolved channel '{channel_id}' to ID '{resolved_id}'"
-                )
-                channel_id = resolved_id
-
-        logger.info(f"Getting info for channel {channel_id}")
-        return await discord_bot.get_channel_info(channel_id)
-    except Exception as e:
-        logger.error(f"Error getting channel info: {str(e)}")
-        return {"error": f"Error getting channel info: {str(e)}"}
-
-
-# discord_list_servers tool removed - using server_registry_tools.list_servers instead
-
-
-@mcp.tool(
-    name="discord_bot_status",
-    description="Get the current status of the Discord bot",
-)
-async def discord_bot_status():
-    """Get the current status of the Discord bot."""
-    global discord_bot
-
-    if not discord_bot:
-        return {
-            "status": "not_started",
-            "message": "Discord bot has not been started",
-        }
-
-    if discord_bot.is_closed():
-        return {
-            "status": "closed",
-            "message": "Discord bot is closed",
-        }
-
-    return {
-        "status": "running",
-        "bot_user": (
-            str(discord_bot.user) if discord_bot.user else "Connecting..."
-        ),
-        "guild_count": len(discord_bot.guilds) if discord_bot.guilds else 0,
-        "guilds": (
-            [{"id": str(g.id), "name": g.name} for g in discord_bot.guilds]
-            if discord_bot.guilds
-            else []
-        ),
-    }
+# discord_get_channel_info moved to core.py and registered via register_tools()
+# discord_bot_status moved to core.py and registered via register_tools()
 
 
 # Registry management tools
@@ -363,8 +254,7 @@ async def registry_get_server(reference: str, user_id: str = "system"):
             return {
                 "success": True,
                 "server": {
-                    "id": server.id,
-                    "discord_id": server.discord_id,
+                    "id": server.discord_id,  # Use Discord ID directly
                     "name": server.name,
                     "description": server.description,
                 },
@@ -406,15 +296,13 @@ async def registry_get_channel(
             return {
                 "success": True,
                 "channel": {
-                    "id": channel.id,
-                    "discord_id": channel.discord_id,
+                    "id": channel.discord_id,  # Use Discord ID directly
                     "name": channel.name,
                     "type": (
                         channel.type.value
                         if hasattr(channel.type, "value")
                         else str(channel.type)
                     ),
-                    "server_id": channel.server_id,
                 },
             }
         else:
@@ -454,11 +342,9 @@ async def registry_get_role(
             return {
                 "success": True,
                 "role": {
-                    "id": role.id,
-                    "discord_id": role.discord_id,
+                    "id": role.discord_id,  # Use Discord ID directly
                     "name": role.name,
                     "color": role.color,
-                    "server_id": role.server_id,
                     "mentionable": role.mentionable,
                 },
             }
@@ -539,7 +425,7 @@ async def register_additional_tools():
     try:
         # Import tools
         from .tools.register_tools import register_tools
-        from .tools.server_registry_tools import (
+        from .tools.search_tools import (
             list_servers,
             get_server_channels,
             get_server_roles,

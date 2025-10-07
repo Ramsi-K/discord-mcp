@@ -5,10 +5,45 @@ Implements the essential Discord functionality for MCP integration.
 
 import logging
 from typing import Dict, List, Optional, Any, Union
+from functools import wraps
 from pydantic import Field
 from mcp.server.fastmcp import Context
 
 logger = logging.getLogger(__name__)
+
+
+def require_bot(func):
+    """Decorator to ensure Discord bot is running before executing tool."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        # Get ctx from kwargs
+        ctx = kwargs.get('ctx')
+        if not ctx:
+            return {"error": "Context not available"}
+
+        # Check if bot is available
+        discord_bot = await get_discord_bot(ctx)
+        if not discord_bot:
+            # Try to start bot
+            import os
+            from ..server import ensure_bot_running
+
+            token = os.getenv("DISCORD_TOKEN", "")
+            if not token:
+                return {
+                    "error": "Discord bot not started and DISCORD_TOKEN not set. Please start the bot first."
+                }
+
+            # Start the bot
+            start_result = await ensure_bot_running(token)
+            if not start_result.get("success"):
+                return {
+                    "error": f"Could not start Discord bot: {start_result.get('error', 'Unknown error')}"
+                }
+
+        return await func(*args, **kwargs)
+
+    return wrapper
 
 
 async def get_discord_bot(ctx: Context):
@@ -47,6 +82,7 @@ async def get_config():
 # Server and Channel Listing Tools (Task 2.1)
 
 
+@require_bot
 async def discord_list_servers(*, ctx: Context) -> Dict[str, Any]:
     """List all servers (guilds) the bot is a member of.
 
@@ -116,6 +152,7 @@ async def discord_list_servers(*, ctx: Context) -> Dict[str, Any]:
         return {"error": f"Failed to list servers: {str(e)}"}
 
 
+@require_bot
 async def discord_list_channels(
     guild_id: str = Field(description="Discord server (guild) ID"),
     channel_type: Optional[str] = Field(
@@ -252,6 +289,7 @@ async def discord_list_channels(
 # Channel Information and Status Tools (Task 2.2)
 
 
+@require_bot
 async def discord_get_channel_info(
     channel_id: str = Field(description="Discord channel ID"), *, ctx: Context
 ) -> Dict[str, Any]:
@@ -368,6 +406,7 @@ async def discord_get_channel_info(
         return {"error": f"Failed to get channel info: {str(e)}"}
 
 
+@require_bot
 async def discord_bot_status(*, ctx: Context) -> Dict[str, Any]:
     """Get the current status and health information of the Discord bot.
 
@@ -462,6 +501,7 @@ async def discord_bot_status(*, ctx: Context) -> Dict[str, Any]:
         return {"error": f"Failed to get bot status: {str(e)}"}
 
 
+@require_bot
 async def discord_ping(
     server_id: Optional[str] = Field(
         default=None, description="Optional server ID to check connection to specific server"
@@ -560,6 +600,7 @@ async def discord_ping(
 # Message Management Tools (Task 2.3)
 
 
+@require_bot
 async def discord_get_recent_messages(
     channel_id: str = Field(description="Discord channel ID"),
     limit: int = Field(
@@ -742,6 +783,7 @@ async def discord_get_recent_messages(
         return {"error": f"Failed to get recent messages: {str(e)}"}
 
 
+@require_bot
 async def discord_get_message(
     channel_id: str = Field(description="Discord channel ID"),
     message_id: str = Field(description="Discord message ID"),
@@ -887,6 +929,7 @@ async def discord_get_message(
         return {"error": f"Failed to get message: {str(e)}"}
 
 
+@require_bot
 async def discord_send_message(
     channel_id: str = Field(description="Discord channel ID"),
     content: str = Field(description="Message content to send"),
