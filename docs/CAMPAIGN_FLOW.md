@@ -31,6 +31,7 @@ The campaign system enables automated reminder messaging based on Discord messag
 **When**: After posting your announcement message with reaction options
 
 **Parameters**:
+
 - `channel_id`: Where the announcement message is
 - `message_id`: The announcement message ID to track
 - `emoji`: Which emoji to track (e.g., "👍", "🎉", ":thumbsup:")
@@ -38,6 +39,7 @@ The campaign system enables automated reminder messaging based on Discord messag
 - `title`: Optional campaign name (e.g., "Tournament Signup Reminder")
 
 **Example**:
+
 ```python
 discord_create_campaign(
     channel_id="123456789012345678",
@@ -49,6 +51,7 @@ discord_create_campaign(
 ```
 
 **What happens**:
+
 - Campaign record created in database with status `active`
 - Linked to specific message and emoji
 - Reminder scheduled for `remind_at` datetime
@@ -60,19 +63,23 @@ discord_create_campaign(
 **Tool**: `discord_tally_optins`
 
 **When**:
+
 - Anytime after campaign creation
 - Before building/sending reminders
 - Can run multiple times (idempotent - won't duplicate users)
 
 **Parameters**:
+
 - `campaign_id`: ID returned from `discord_create_campaign`
 
 **Example**:
+
 ```python
 discord_tally_optins(campaign_id=1)
 ```
 
 **What happens**:
+
 - Fetches ALL reactions on the message
 - Filters for the specific emoji you're tracking
 - Stores unique user IDs in `optins` table
@@ -80,6 +87,7 @@ discord_tally_optins(campaign_id=1)
 - Returns counts: `total_optins`, `new_optins`, `existing_optins`
 
 **Important**:
+
 - Run this RIGHT BEFORE sending reminders to get latest opt-ins
 - Safe to run multiple times - won't create duplicates
 - Automatically refreshes who's opted in
@@ -93,9 +101,11 @@ discord_tally_optins(campaign_id=1)
 **When**: View all campaigns or filter by status
 
 **Parameters**:
+
 - `status`: Optional filter ("active", "completed", "cancelled")
 
 **Example**:
+
 ```python
 # List all active campaigns
 discord_list_campaigns(status="active")
@@ -115,9 +125,11 @@ discord_list_campaigns()
 **When**: Check specific campaign info
 
 **Parameters**:
+
 - `campaign_id`: The campaign ID
 
 **Example**:
+
 ```python
 discord_get_campaign(campaign_id=1)
 ```
@@ -133,10 +145,12 @@ discord_get_campaign(campaign_id=1)
 **When**: Preview the reminder message before sending
 
 **Parameters**:
+
 - `campaign_id`: The campaign ID
 - `template`: Optional custom message template
 
 **Example**:
+
 ```python
 # Default template
 discord_build_reminder(campaign_id=1)
@@ -149,12 +163,14 @@ discord_build_reminder(
 ```
 
 **What happens**:
+
 - Fetches all opted-in users from database
 - Creates `<@user_id>` mentions for each user
 - Chunks mentions to stay under 2000 character Discord limit
 - Returns array of message chunks ready to send
 
 **Template Variables**:
+
 - `{title}`: Campaign title
 - `{mentions}`: Space-separated @mentions (auto-inserted)
 
@@ -167,10 +183,12 @@ discord_build_reminder(
 **When**: Manually trigger reminder or run as scheduled automation
 
 **Parameters**:
+
 - `campaign_id`: The campaign ID
 - `dry_run`: If True, don't actually send (default: True for safety)
 
 **Example**:
+
 ```python
 # Test run (doesn't actually send)
 discord_send_reminder(campaign_id=1, dry_run=True)
@@ -180,6 +198,7 @@ discord_send_reminder(campaign_id=1, dry_run=False)
 ```
 
 **What happens**:
+
 1. Calls `discord_build_reminder` internally
 2. Sends each message chunk to the campaign's channel
 3. Rate limits (1 second between chunks)
@@ -197,15 +216,18 @@ discord_send_reminder(campaign_id=1, dry_run=False)
 **When**: Run on a schedule (e.g., every 5 minutes via cron/task scheduler)
 
 **Parameters**:
+
 - `now`: Optional datetime override (for testing)
 
 **Example**:
+
 ```python
 # Check and send all due reminders
 discord_run_due_reminders()
 ```
 
 **What happens**:
+
 1. Queries database for campaigns where `remind_at <= now` and `status = 'active'`
 2. For each due campaign:
    - Runs `discord_tally_optins` to refresh opt-ins
@@ -215,6 +237,7 @@ discord_run_due_reminders()
 3. Rate limits between campaigns (2 seconds)
 
 **Recommended**: Set up a cron job or scheduled task:
+
 ```bash
 */5 * * * * uv run python -c "import asyncio; from discord_mcp.tools.campaigns import discord_run_due_reminders; asyncio.run(discord_run_due_reminders())"
 ```
@@ -228,10 +251,12 @@ discord_run_due_reminders()
 **When**: Cancel or manually complete a campaign
 
 **Parameters**:
+
 - `campaign_id`: The campaign ID
 - `status`: New status ("active", "completed", "cancelled")
 
 **Example**:
+
 ```python
 # Cancel a campaign
 discord_update_campaign_status(campaign_id=1, status="cancelled")
@@ -249,14 +274,17 @@ discord_update_campaign_status(campaign_id=1, status="active")
 **When**: Permanently remove a campaign and all opt-in data
 
 **Parameters**:
+
 - `campaign_id`: The campaign ID
 
 **Example**:
+
 ```python
 discord_delete_campaign(campaign_id=1)
 ```
 
 **What happens**:
+
 - Deletes all opt-ins associated with the campaign
 - Marks campaign as `deleted` in database
 - **Warning**: Cannot be undone!
@@ -270,11 +298,13 @@ discord_delete_campaign(campaign_id=1)
 **When**: View who has opted in
 
 **Parameters**:
+
 - `campaign_id`: The campaign ID
 - `limit`: Max results per page (default: 100)
 - `after_user_id`: For pagination
 
 **Example**:
+
 ```python
 # Get first 100 opt-ins
 discord_list_optins(campaign_id=1, limit=100)
@@ -288,6 +318,7 @@ discord_list_optins(campaign_id=1, limit=100, after_user_id="123456789")
 ## Database Schema
 
 ### Campaigns Table
+
 ```sql
 CREATE TABLE campaigns (
     id INTEGER PRIMARY KEY,
@@ -302,6 +333,7 @@ CREATE TABLE campaigns (
 ```
 
 ### Opt-Ins Table
+
 ```sql
 CREATE TABLE optins (
     id INTEGER PRIMARY KEY,
@@ -314,6 +346,7 @@ CREATE TABLE optins (
 ```
 
 ### Reminders Log Table
+
 ```sql
 CREATE TABLE reminders_log (
     id INTEGER PRIMARY KEY,
@@ -417,19 +450,23 @@ Each campaign independently tracks its emoji and can have different reminder tim
 ## Troubleshooting
 
 **Campaign not sending reminders automatically?**
+
 - Ensure `discord_run_due_reminders` is scheduled to run regularly
 - Check campaign `status` is "active"
 - Verify `remind_at` datetime is in the past
 
 **No opt-ins being tallied?**
+
 - Verify emoji matches exactly (case-sensitive for custom emojis)
 - Check that message has reactions
 - Ensure bot has permission to read message history
 
 **Reminder message too long?**
+
 - System automatically chunks messages under 2000 characters
 - Each chunk sent separately with 1-second delay
 
 **Users not getting mentioned?**
+
 - Check bot has `mention_everyone` permission if using @everyone
 - Individual user mentions don't require special permissions
