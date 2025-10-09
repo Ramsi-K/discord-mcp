@@ -31,9 +31,7 @@ class Config:
         if not allowlist:
             return None
         return [
-            guild_id.strip()
-            for guild_id in allowlist.split(",")
-            if guild_id.strip()
+            guild_id.strip() for guild_id in allowlist.split(",") if guild_id.strip()
         ]
 
     @property

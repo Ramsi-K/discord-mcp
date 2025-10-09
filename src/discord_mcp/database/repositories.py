@@ -91,9 +91,7 @@ class CampaignRepository:
             logger.error(f"Failed to get campaign {campaign_id}: {e}")
             return None
 
-    def get_campaigns_by_status(
-        self, status: str = "active"
-    ) -> List[Campaign]:
+    def get_campaigns_by_status(self, status: str = "active") -> List[Campaign]:
         """Get campaigns by status."""
         try:
             with self.db_connection as conn:
@@ -149,7 +147,7 @@ class CampaignRepository:
                 cursor.execute(
                     """
                     SELECT id, title, channel_id, message_id, emoji, remind_at, created_at, status
-                    FROM campaigns 
+                    FROM campaigns
                     WHERE status = 'active' AND remind_at <= ?
                     ORDER BY remind_at ASC
                 """,
@@ -199,18 +197,14 @@ class CampaignRepository:
                 )
 
                 if cursor.rowcount > 0:
-                    logger.info(
-                        f"Updated campaign {campaign_id} status to {status}"
-                    )
+                    logger.info(f"Updated campaign {campaign_id} status to {status}")
                     return True
                 else:
                     logger.warning(f"No campaign found with ID {campaign_id}")
                     return False
 
         except Exception as e:
-            logger.error(
-                f"Failed to update campaign {campaign_id} status: {e}"
-            )
+            logger.error(f"Failed to update campaign {campaign_id} status: {e}")
             return False
 
 
@@ -265,7 +259,7 @@ class OptInRepository:
                     cursor.execute(
                         """
                         SELECT id, campaign_id, user_id, username, tallied_at
-                        FROM optins 
+                        FROM optins
                         WHERE campaign_id = ? AND user_id > ?
                         ORDER BY user_id ASC
                         LIMIT ?
@@ -276,7 +270,7 @@ class OptInRepository:
                     cursor.execute(
                         """
                         SELECT id, campaign_id, user_id, username, tallied_at
-                        FROM optins 
+                        FROM optins
                         WHERE campaign_id = ?
                         ORDER BY user_id ASC
                         LIMIT ?
@@ -303,9 +297,7 @@ class OptInRepository:
                 return optins
 
         except Exception as e:
-            logger.error(
-                f"Failed to get opt-ins for campaign {campaign_id}: {e}"
-            )
+            logger.error(f"Failed to get opt-ins for campaign {campaign_id}: {e}")
             return []
 
     def get_optin_count(self, campaign_id: int) -> int:
@@ -325,9 +317,7 @@ class OptInRepository:
                 return row["count"] if row else 0
 
         except Exception as e:
-            logger.error(
-                f"Failed to get opt-in count for campaign {campaign_id}: {e}"
-            )
+            logger.error(f"Failed to get opt-in count for campaign {campaign_id}: {e}")
             return 0
 
     def clear_optins(self, campaign_id: int) -> bool:
@@ -349,9 +339,7 @@ class OptInRepository:
                 return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to clear opt-ins for campaign {campaign_id}: {e}"
-            )
+            logger.error(f"Failed to clear opt-ins for campaign {campaign_id}: {e}")
             return False
 
 
@@ -404,7 +392,7 @@ class ReminderLogRepository:
                 cursor.execute(
                     """
                     SELECT id, campaign_id, sent_at, recipient_count, message_chunks, success, error_message
-                    FROM reminders_log 
+                    FROM reminders_log
                     WHERE campaign_id = ?
                     ORDER BY sent_at DESC
                 """,
@@ -432,7 +420,5 @@ class ReminderLogRepository:
                 return logs
 
         except Exception as e:
-            logger.error(
-                f"Failed to get reminder logs for campaign {campaign_id}: {e}"
-            )
+            logger.error(f"Failed to get reminder logs for campaign {campaign_id}: {e}")
             return []

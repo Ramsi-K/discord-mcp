@@ -2,6 +2,7 @@
 """
 Test timing issues with guild loading
 """
+
 import asyncio
 import os
 import sys

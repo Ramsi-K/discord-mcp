@@ -65,7 +65,9 @@ async def live_bot():
 
     start_result = await server.ensure_bot_running()
     if not start_result.get("success"):
-        pytest.skip(f"Unable to start Discord bot for live tests: {start_result.get('error')}")
+        pytest.skip(
+            f"Unable to start Discord bot for live tests: {start_result.get('error')}"
+        )
 
     yield server.discord_bot
 
@@ -146,7 +148,9 @@ async def test_send_and_fetch_message_live(live_ctx, live_bot):
     assert channel_info["name"] == message_result["channel_name"]
 
     # Clean up the message to avoid polluting the channel
-    channel = live_bot.get_channel(int(TEST_CHANNEL_ID)) or await live_bot.fetch_channel(int(TEST_CHANNEL_ID))
+    channel = live_bot.get_channel(
+        int(TEST_CHANNEL_ID)
+    ) or await live_bot.fetch_channel(int(TEST_CHANNEL_ID))
     try:
         message = await channel.fetch_message(int(message_id))
         await message.delete()

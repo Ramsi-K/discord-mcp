@@ -3,6 +3,7 @@
 Development script for Discord MCP server
 Use this for development, testing, and running MCP inspector
 """
+
 import asyncio
 import sys
 import os

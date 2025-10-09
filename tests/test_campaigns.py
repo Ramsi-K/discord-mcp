@@ -206,10 +206,7 @@ def test_reminder_chunking():
     for mention in mentions:
         mention_length = len(mention) + 1  # +1 for space
 
-        if (
-            current_length + mention_length > available_space
-            and current_mentions
-        ):
+        if current_length + mention_length > available_space and current_mentions:
             # Create chunk
             mentions_text = " ".join(current_mentions)
             chunk = base_message.replace("{mentions}", mentions_text)

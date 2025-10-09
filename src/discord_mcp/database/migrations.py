@@ -58,23 +58,23 @@ class CampaignMigrations:
             """,
             # Migration 4: Create indexes for performance
             """
-            CREATE INDEX IF NOT EXISTS idx_campaigns_status 
+            CREATE INDEX IF NOT EXISTS idx_campaigns_status
             ON campaigns (status);
             """,
             """
-            CREATE INDEX IF NOT EXISTS idx_campaigns_remind_at 
+            CREATE INDEX IF NOT EXISTS idx_campaigns_remind_at
             ON campaigns (remind_at);
             """,
             """
-            CREATE INDEX IF NOT EXISTS idx_optins_campaign_id 
+            CREATE INDEX IF NOT EXISTS idx_optins_campaign_id
             ON optins (campaign_id);
             """,
             """
-            CREATE INDEX IF NOT EXISTS idx_optins_user_id 
+            CREATE INDEX IF NOT EXISTS idx_optins_user_id
             ON optins (user_id);
             """,
             """
-            CREATE INDEX IF NOT EXISTS idx_reminders_log_campaign_id 
+            CREATE INDEX IF NOT EXISTS idx_reminders_log_campaign_id
             ON reminders_log (campaign_id);
             """,
         ]

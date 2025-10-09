@@ -64,9 +64,7 @@ class ChannelRepository:
                 return self._row_to_channel(results[0])
             return None
         except Exception as e:
-            logger.error(
-                f"Error getting channel by Discord ID {discord_id}: {e}"
-            )
+            logger.error(f"Error getting channel by Discord ID {discord_id}: {e}")
             return None
 
     def get_channel_by_name(
@@ -216,7 +214,7 @@ class ChannelRepository:
         try:
             self.db.execute_update(
                 """
-                UPDATE channels 
+                UPDATE channels
                 SET name = ?, type = ?, topic = ?, position = ?, parent_id = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """,

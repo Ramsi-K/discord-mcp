@@ -15,10 +15,11 @@ logger = logging.getLogger(__name__)
 
 def require_bot(func):
     """Decorator to ensure Discord bot is running before executing tool."""
+
     @wraps(func)
     async def wrapper(*args, **kwargs):
         # Get ctx from kwargs
-        ctx = kwargs.get('ctx')
+        ctx = kwargs.get("ctx")
         if not ctx:
             return {"error": "Context not available"}
 
@@ -214,9 +215,7 @@ async def discord_list_channels(
 
         # Apply type filter if specified
         if channel_type:
-            mock_channels = [
-                ch for ch in mock_channels if ch["type"] == channel_type
-            ]
+            mock_channels = [ch for ch in mock_channels if ch["type"] == channel_type]
 
         return {
             "channels": mock_channels,
@@ -240,9 +239,7 @@ async def discord_list_channels(
             guild = await discord_bot.fetch_guild(int(guild_id))
 
         if not guild:
-            return {
-                "error": f"Server {guild_id} not found or bot not in server"
-            }
+            return {"error": f"Server {guild_id} not found or bot not in server"}
 
         channels = []
         for channel in guild.channels:
@@ -255,9 +252,7 @@ async def discord_list_channels(
                 "name": channel.name,
                 "type": str(channel.type),
                 "position": channel.position,
-                "category": (
-                    channel.category.name if channel.category else None
-                ),
+                "category": (channel.category.name if channel.category else None),
             }
 
             # Add text channel specific info
@@ -344,12 +339,8 @@ async def discord_get_channel_info(
             return {"error": f"Channel {channel_id} not found"}
 
         # Check guild allowlist if channel is in a guild
-        if channel.guild and not config.is_guild_allowed(
-            str(channel.guild.id)
-        ):
-            return {
-                "error": f"Guild {channel.guild.id} is not in the allowlist"
-            }
+        if channel.guild and not config.is_guild_allowed(str(channel.guild.id)):
+            return {"error": f"Guild {channel.guild.id} is not in the allowlist"}
 
         # Get bot's permissions in this channel
         bot_permissions = None
@@ -364,9 +355,7 @@ async def discord_get_channel_info(
             "type": str(channel.type),
             "position": getattr(channel, "position", None),
             "category": (
-                channel.category.name
-                if getattr(channel, "category", None)
-                else None
+                channel.category.name if getattr(channel, "category", None) else None
             ),
             "created_at": channel.created_at.isoformat(),
             "server_id": str(channel.guild.id) if channel.guild else None,
@@ -480,14 +469,10 @@ async def discord_bot_status(*, ctx: Context) -> Dict[str, Any]:
 
         return {
             "status": "connected",
-            "bot_user": (
-                str(discord_bot.user) if discord_bot.user else "Unknown"
-            ),
+            "bot_user": (str(discord_bot.user) if discord_bot.user else "Unknown"),
             "bot_id": str(discord_bot.user.id) if discord_bot.user else None,
             "guild_count": len(allowed_guilds),
-            "total_guild_count": (
-                len(discord_bot.guilds) if discord_bot.guilds else 0
-            ),
+            "total_guild_count": (len(discord_bot.guilds) if discord_bot.guilds else 0),
             "latency": round(discord_bot.latency * 1000, 1),  # Convert to ms
             "guilds": allowed_guilds,
             "config": {
@@ -505,7 +490,8 @@ async def discord_bot_status(*, ctx: Context) -> Dict[str, Any]:
 @require_bot
 async def discord_ping(
     server_id: Optional[str] = Field(
-        default=None, description="Optional server ID to check connection to specific server"
+        default=None,
+        description="Optional server ID to check connection to specific server",
     ),
     *,
     ctx: Context,
@@ -523,7 +509,9 @@ async def discord_ping(
     Returns:
         Dictionary with connection status, latency, and server access info
     """
-    await ctx.info(f"Pinging Discord{f' and checking server {server_id}' if server_id else ''}")
+    await ctx.info(
+        f"Pinging Discord{f' and checking server {server_id}' if server_id else ''}"
+    )
 
     config = await get_config()
     if not config:
@@ -586,16 +574,15 @@ async def discord_ping(
                     response["member_count"] = guild.member_count
             else:
                 response["server_access"] = False
-                response["server_error"] = f"Bot does not have access to server {server_id}"
+                response["server_error"] = (
+                    f"Bot does not have access to server {server_id}"
+                )
 
         return response
 
     except Exception as e:
         await ctx.info(f"Error pinging Discord: {e}")
-        return {
-            "status": "error",
-            "error": f"Failed to ping Discord: {str(e)}"
-        }
+        return {"status": "error", "error": f"Failed to ping Discord: {str(e)}"}
 
 
 # Message Management Tools (Task 2.3)
@@ -627,9 +614,7 @@ async def discord_get_recent_messages(
     Returns:
         Dictionary containing list of messages and pagination info
     """
-    await ctx.info(
-        f"Getting recent messages from channel {channel_id}, limit: {limit}"
-    )
+    await ctx.info(f"Getting recent messages from channel {channel_id}, limit: {limit}")
 
     config = await get_config()
     if not config:
@@ -686,12 +671,8 @@ async def discord_get_recent_messages(
             return {"error": f"Channel {channel_id} not found"}
 
         # Check guild allowlist if channel is in a guild
-        if channel.guild and not config.is_guild_allowed(
-            str(channel.guild.id)
-        ):
-            return {
-                "error": f"Guild {channel.guild.id} is not in the allowlist"
-            }
+        if channel.guild and not config.is_guild_allowed(str(channel.guild.id)):
+            return {"error": f"Guild {channel.guild.id} is not in the allowlist"}
 
         # Check bot permissions
         if channel.guild:
@@ -733,9 +714,7 @@ async def discord_get_recent_messages(
                 },
                 "timestamp": message.created_at.isoformat(),
                 "edited_timestamp": (
-                    message.edited_at.isoformat()
-                    if message.edited_at
-                    else None
+                    message.edited_at.isoformat() if message.edited_at else None
                 ),
                 "attachments": [
                     {
@@ -761,9 +740,7 @@ async def discord_get_recent_messages(
                     for reaction in message.reactions
                 ],
                 "reply_to": (
-                    str(message.reference.message_id)
-                    if message.reference
-                    else None
+                    str(message.reference.message_id) if message.reference else None
                 ),
                 "type": str(message.type),
             }
@@ -842,12 +819,8 @@ async def discord_get_message(
             return {"error": f"Channel {channel_id} not found"}
 
         # Check guild allowlist if channel is in a guild
-        if channel.guild and not config.is_guild_allowed(
-            str(channel.guild.id)
-        ):
-            return {
-                "error": f"Guild {channel.guild.id} is not in the allowlist"
-            }
+        if channel.guild and not config.is_guild_allowed(str(channel.guild.id)):
+            return {"error": f"Guild {channel.guild.id} is not in the allowlist"}
 
         # Check bot permissions
         if channel.guild:
@@ -871,9 +844,7 @@ async def discord_get_message(
                 "display_name": message.author.display_name,
                 "bot": message.author.bot,
                 "avatar_url": (
-                    str(message.author.avatar.url)
-                    if message.author.avatar
-                    else None
+                    str(message.author.avatar.url) if message.author.avatar else None
                 ),
             },
             "timestamp": message.created_at.isoformat(),
@@ -898,9 +869,7 @@ async def discord_get_message(
                     "color": embed.color.value if embed.color else None,
                     "footer": embed.footer.text if embed.footer else None,
                     "timestamp": (
-                        embed.timestamp.isoformat()
-                        if embed.timestamp
-                        else None
+                        embed.timestamp.isoformat() if embed.timestamp else None
                     ),
                 }
                 for embed in message.embeds
@@ -914,9 +883,7 @@ async def discord_get_message(
                 for reaction in message.reactions
             ],
             "reply_to": (
-                str(message.reference.message_id)
-                if message.reference
-                else None
+                str(message.reference.message_id) if message.reference else None
             ),
             "type": str(message.type),
             "channel_id": channel_id,
@@ -1154,12 +1121,8 @@ async def discord_send_message(
             return {"error": f"Channel {channel_id} not found"}
 
         # Check guild allowlist if channel is in a guild
-        if channel.guild and not config.is_guild_allowed(
-            str(channel.guild.id)
-        ):
-            return {
-                "error": f"Guild {channel.guild.id} is not in the allowlist"
-            }
+        if channel.guild and not config.is_guild_allowed(str(channel.guild.id)):
+            return {"error": f"Guild {channel.guild.id} is not in the allowlist"}
 
         # Check bot permissions
         if channel.guild:
@@ -1198,7 +1161,7 @@ async def discord_send_message(
         sent_message = await channel.send(
             content=content_to_send,
             reference=message_reference,
-            allowed_mentions=allowed_mentions
+            allowed_mentions=allowed_mentions,
         )
 
         return {

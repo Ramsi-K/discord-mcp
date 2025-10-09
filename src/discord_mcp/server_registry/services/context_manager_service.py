@@ -47,9 +47,7 @@ class ContextManagerService:
 
         return context
 
-    def track_entity(
-        self, user_id: str, entity_type: str, entity_id: int
-    ) -> bool:
+    def track_entity(self, user_id: str, entity_type: str, entity_id: int) -> bool:
         """
         Track an entity in the conversation context.
 

@@ -6,14 +6,14 @@ import asyncio
 from datetime import datetime, timedelta
 
 # Only run if DISCORD_TOKEN is available
-pytest_plugins = ('pytest_asyncio',)
+pytest_plugins = ("pytest_asyncio",)
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 TEST_CHANNEL_ID = os.getenv("TEST_CHANNEL_ID")  # Set this to a test channel
 
 pytestmark = pytest.mark.skipif(
     not DISCORD_TOKEN or not TEST_CHANNEL_ID,
-    reason="Requires DISCORD_TOKEN and TEST_CHANNEL_ID environment variables"
+    reason="Requires DISCORD_TOKEN and TEST_CHANNEL_ID environment variables",
 )
 
 
@@ -46,6 +46,7 @@ async def test_campaign_multi_reaction_workflow():
     try:
         # Import discord_bot
         from discord_mcp.server import discord_bot
+
         assert discord_bot is not None
         assert not discord_bot.is_closed()
 
@@ -65,7 +66,7 @@ Test time: {datetime.now().isoformat()}
             channel_id=TEST_CHANNEL_ID,
             content=test_message_content,
             mention_everyone=False,
-            ctx=None  # Mock context
+            ctx=None,  # Mock context
         )
 
         assert send_result["success"], f"Failed to send message: {send_result}"
@@ -94,10 +95,12 @@ Test time: {datetime.now().isoformat()}
             message_id=message_id,
             emoji="👍",
             remind_at=remind_at,
-            title="Test Tournament - Attending"
+            title="Test Tournament - Attending",
         )
 
-        assert campaign_result["success"], f"Failed to create campaign: {campaign_result}"
+        assert campaign_result[
+            "success"
+        ], f"Failed to create campaign: {campaign_result}"
         campaign_id = campaign_result["campaign"]["id"]
 
         print(f"✅ Created campaign: {campaign_id}")
@@ -151,7 +154,9 @@ Test time: {datetime.now().isoformat()}
         print(f"  Existing: {existing_optins}")
 
         # Verify idempotency - no duplicates
-        assert final_count == initial_count, "Idempotency check failed - got duplicates!"
+        assert (
+            final_count == initial_count
+        ), "Idempotency check failed - got duplicates!"
 
         # 8. Verify other emoji reactions are NOT in database
         # Check message reactions directly
@@ -197,7 +202,10 @@ Test time: {datetime.now().isoformat()}
 async def test_campaign_tally_filters_bots():
     """Verify that bot reactions are filtered out from opt-ins."""
     from discord_mcp.server import ensure_bot_running
-    from discord_mcp.tools.campaigns import discord_create_campaign, discord_tally_optins
+    from discord_mcp.tools.campaigns import (
+        discord_create_campaign,
+        discord_tally_optins,
+    )
     from discord_mcp.tools.core import discord_send_message
 
     bot_result = await ensure_bot_running(DISCORD_TOKEN)
@@ -210,7 +218,7 @@ async def test_campaign_tally_filters_bots():
         channel_id=TEST_CHANNEL_ID,
         content="Bot reaction test",
         mention_everyone=False,
-        ctx=None
+        ctx=None,
     )
 
     message_id = send_result["message_id"]
@@ -229,7 +237,7 @@ async def test_campaign_tally_filters_bots():
             message_id=message_id,
             emoji="🤖",
             remind_at=remind_at,
-            title="Bot Filter Test"
+            title="Bot Filter Test",
         )
 
         campaign_id = campaign_result["campaign"]["id"]
@@ -240,7 +248,9 @@ async def test_campaign_tally_filters_bots():
         assert tally_result["success"]
 
         # Should be 0 because bot reactions are filtered
-        assert tally_result["tally"]["total_optins"] == 0, "Bot reactions should be filtered!"
+        assert (
+            tally_result["tally"]["total_optins"] == 0
+        ), "Bot reactions should be filtered!"
 
         print("✅ Bot reactions correctly filtered")
 

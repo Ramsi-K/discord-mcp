@@ -66,9 +66,7 @@ class ServerRegistryService:
                 name="Unknown Server",
             )
 
-    def update_server_registry(
-        self, server_id: int, discord_guild: Any
-    ) -> bool:
+    def update_server_registry(self, server_id: int, discord_guild: Any) -> bool:
         """
         Update the server registry for a specific server.
 
@@ -224,9 +222,7 @@ class ServerRegistryService:
 
         return ServerPermissions()
 
-    def _extract_channel_permissions(
-        self, discord_channel: Dict[str, Any]
-    ) -> Any:
+    def _extract_channel_permissions(self, discord_channel: Dict[str, Any]) -> Any:
         """
         Extract channel permissions from Discord channel data.
 
@@ -255,12 +251,8 @@ class ServerRegistryService:
             discord_id=str(discord_guild.id),
             name=discord_guild.name,
             description=discord_guild.description,
-            icon_url=(
-                str(discord_guild.icon.url) if discord_guild.icon else None
-            ),
-            owner_id=(
-                str(discord_guild.owner_id) if discord_guild.owner_id else None
-            ),
+            icon_url=(str(discord_guild.icon.url) if discord_guild.icon else None),
+            owner_id=(str(discord_guild.owner_id) if discord_guild.owner_id else None),
         )
 
         # Generate aliases
@@ -268,9 +260,7 @@ class ServerRegistryService:
 
         return server
 
-    def _update_channels_for_server(
-        self, server: Server, discord_guild: Any
-    ) -> None:
+    def _update_channels_for_server(self, server: Server, discord_guild: Any) -> None:
         """
         Update channels for a server.
 
@@ -280,18 +270,12 @@ class ServerRegistryService:
         """
         try:
             for discord_channel in discord_guild.channels:
-                channel = self._create_channel_from_discord(
-                    discord_channel, server.id
-                )
+                channel = self._create_channel_from_discord(discord_channel, server.id)
                 self.channel_repo.upsert_channel(channel)
         except Exception as e:
-            logger.error(
-                f"Error updating channels for server {server.name}: {e}"
-            )
+            logger.error(f"Error updating channels for server {server.name}: {e}")
 
-    def _update_roles_for_server(
-        self, server: Server, discord_guild: Any
-    ) -> None:
+    def _update_roles_for_server(self, server: Server, discord_guild: Any) -> None:
         """
         Update roles for a server.
 
@@ -340,9 +324,7 @@ class ServerRegistryService:
 
         return channel
 
-    def _create_role_from_discord(
-        self, discord_role: Any, server_id: int
-    ) -> Role:
+    def _create_role_from_discord(self, discord_role: Any, server_id: int) -> Role:
         """
         Create a Role object from a Discord role.
 

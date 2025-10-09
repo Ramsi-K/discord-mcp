@@ -2,6 +2,7 @@
 """
 Real Discord functionality test - connects to actual Discord API
 """
+
 import asyncio
 import os
 import sys
@@ -35,9 +36,7 @@ async def test_real_discord_functionality():
     print(f"✅ Dry run mode: {config.dry_run}")
 
     if config.dry_run:
-        print(
-            "⚠️  DRY_RUN is enabled - switching to live mode for real testing"
-        )
+        print("⚠️  DRY_RUN is enabled - switching to live mode for real testing")
         os.environ["DRY_RUN"] = "false"
         config = Config()  # Reload config
 
@@ -59,17 +58,13 @@ async def test_real_discord_functionality():
         print(f"   Servers: {servers_result}")
 
         # Test 3: List Channels (if we have servers)
-        if "servers" in str(servers_result) and "[]" not in str(
-            servers_result
-        ):
+        if "servers" in str(servers_result) and "[]" not in str(servers_result):
             print("\n3️⃣ Testing channel listing...")
             channels_result = await discord_list_channels()
             print(f"   Channels: {channels_result}")
 
             # Test 4: Get Channel Info (if we have channels)
-            if "channels" in str(channels_result) and "[]" not in str(
-                channels_result
-            ):
+            if "channels" in str(channels_result) and "[]" not in str(channels_result):
                 print("\n4️⃣ Testing channel info...")
                 # Try to extract a channel ID from the result
                 import json
@@ -84,9 +79,7 @@ async def test_real_discord_functionality():
                         first_channel = channels_data["channels"][0]
                         channel_id = first_channel.get("id")
                         if channel_id:
-                            info_result = await discord_get_channel_info(
-                                channel_id
-                            )
+                            info_result = await discord_get_channel_info(channel_id)
                             print(f"   Channel Info: {info_result}")
 
                             # Test 5: Send Test Message (commented out to avoid spam)
@@ -183,8 +176,6 @@ if __name__ == "__main__":
         if success1 and success2:
             print("\n🎉 All tests passed! Discord MCP is working correctly.")
         else:
-            print(
-                "\n⚠️  Some tests failed. Check the output above for details."
-            )
+            print("\n⚠️  Some tests failed. Check the output above for details.")
 
     asyncio.run(main())

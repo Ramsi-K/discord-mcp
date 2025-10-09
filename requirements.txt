@@ -1,2 +1,0 @@
-# No external dependencies required for the core functionality
-# The server registry uses only the Python standard library

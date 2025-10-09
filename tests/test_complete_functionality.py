@@ -36,9 +36,7 @@ async def test_config():
     assert isinstance(config.dry_run, bool)
     assert config.database_path is not None
 
-    print(
-        f"✅ Config loaded: DRY_RUN={config.dry_run}, LOG_LEVEL={config.log_level}"
-    )
+    print(f"✅ Config loaded: DRY_RUN={config.dry_run}, LOG_LEVEL={config.log_level}")
     return config
 
 
@@ -118,9 +116,7 @@ async def test_server_registry():
         if init_result:
             print("✅ Server registry initialized successfully")
         else:
-            print(
-                "⚠️  Server registry initialization failed (might be expected)"
-            )
+            print("⚠️  Server registry initialization failed (might be expected)")
 
     except Exception as e:
         print(f"⚠️  Server registry test failed: {e}")
@@ -184,16 +180,10 @@ async def main():
         print("🎉 All tests completed!")
 
         if live_success:
-            print(
-                "✅ Package is fully functional with live Discord connection"
-            )
+            print("✅ Package is fully functional with live Discord connection")
         else:
-            print(
-                "⚠️  Package structure is correct, but live Discord connection failed"
-            )
-            print(
-                "   This might be due to token permissions or network issues"
-            )
+            print("⚠️  Package structure is correct, but live Discord connection failed")
+            print("   This might be due to token permissions or network issues")
 
         return True
 

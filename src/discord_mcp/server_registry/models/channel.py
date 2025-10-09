@@ -175,7 +175,5 @@ class Channel:
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "aliases": self.aliases,
-            "permissions": (
-                self.permissions.to_dict() if self.permissions else None
-            ),
+            "permissions": (self.permissions.to_dict() if self.permissions else None),
         }

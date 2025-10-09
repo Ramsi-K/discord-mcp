@@ -80,9 +80,7 @@ class ServerRegistry:
         if self.api:
             self.api.clear_current_user()
 
-    async def update_registry(
-        self, server_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def update_registry(self, server_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Update the server registry.
 
@@ -110,9 +108,7 @@ class ServerRegistry:
             logger.error(f"Error updating registry: {str(e)}")
             return {"error": f"Error updating registry: {str(e)}"}
 
-    def track_context(
-        self, entity_type: str, entity_id: Union[int, str]
-    ) -> bool:
+    def track_context(self, entity_type: str, entity_id: Union[int, str]) -> bool:
         """
         Track an entity in the conversation context.
 
@@ -131,9 +127,7 @@ class ServerRegistry:
             if isinstance(entity_id, str):
                 entity_id = int(entity_id)
 
-            return self.api.track_context(
-                self.current_user_id, entity_type, entity_id
-            )
+            return self.api.track_context(self.current_user_id, entity_type, entity_id)
         except Exception as e:
             logger.error(f"Error tracking context: {str(e)}")
             return False

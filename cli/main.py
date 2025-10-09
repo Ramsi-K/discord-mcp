@@ -26,9 +26,7 @@ anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "")
 discord_token = os.getenv("DISCORD_TOKEN", "")
 
 assert claude_model, "Error: CLAUDE_MODEL cannot be empty. Update .env"
-assert (
-    anthropic_api_key
-), "Error: ANTHROPIC_API_KEY cannot be empty. Update .env"
+assert anthropic_api_key, "Error: ANTHROPIC_API_KEY cannot be empty. Update .env"
 assert discord_token, "Error: DISCORD_TOKEN cannot be empty. Update .env"
 
 # Global Discord bot instance

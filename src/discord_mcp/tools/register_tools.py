@@ -136,10 +136,28 @@ async def register_tools(mcp: FastMCP) -> None:
     )(discord_run_due_reminders)
 
     # Search & Discovery Tools (for finding servers/channels/roles by name)
-    mcp.tool(name="server_info", description="Get detailed information about a Discord server")(get_server_info)
-    mcp.tool(name="list_servers", description="List all servers the bot is in")(list_servers)
-    mcp.tool(name="server_channels", description="Get all channels in a Discord server")(get_server_channels)
-    mcp.tool(name="server_roles", description="Get all roles in a Discord server")(get_server_roles)
-    mcp.tool(name="find_server", description="Find a server by name (supports partial matching)")(find_server_by_name)
-    mcp.tool(name="find_channel", description="Find a channel by name in a server (supports partial matching)")(find_channel_by_name)
-    mcp.tool(name="find_role", description="Find a role by name in a server (supports partial matching)")(find_role_by_name)
+    mcp.tool(
+        name="server_info",
+        description="Get detailed information about a Discord server",
+    )(get_server_info)
+    mcp.tool(name="list_servers", description="List all servers the bot is in")(
+        list_servers
+    )
+    mcp.tool(
+        name="server_channels", description="Get all channels in a Discord server"
+    )(get_server_channels)
+    mcp.tool(name="server_roles", description="Get all roles in a Discord server")(
+        get_server_roles
+    )
+    mcp.tool(
+        name="find_server",
+        description="Find a server by name (supports partial matching)",
+    )(find_server_by_name)
+    mcp.tool(
+        name="find_channel",
+        description="Find a channel by name in a server (supports partial matching)",
+    )(find_channel_by_name)
+    mcp.tool(
+        name="find_role",
+        description="Find a role by name in a server (supports partial matching)",
+    )(find_role_by_name)

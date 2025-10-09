@@ -118,9 +118,7 @@ class ServerRegistryAPI(ABC):
         pass
 
     @abstractmethod
-    def track_context(
-        self, user_id: str, entity_type: str, reference: str
-    ) -> bool:
+    def track_context(self, user_id: str, entity_type: str, reference: str) -> bool:
         """
         Track an entity in the conversation context.
 
@@ -190,12 +188,11 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
         context_repo = ContextRepository(db)
 
         # Initialize services with repositories
-        self.server_registry_service = (
-            server_registry_service
-            or ServerRegistryService(server_repo, channel_repo, role_repo)
+        self.server_registry_service = server_registry_service or ServerRegistryService(
+            server_repo, channel_repo, role_repo
         )
-        self.context_manager_service = (
-            context_manager_service or ContextManagerService(context_repo)
+        self.context_manager_service = context_manager_service or ContextManagerService(
+            context_repo
         )
         self.discord_client = discord_client
         self.current_user_id = None
@@ -242,9 +239,8 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
             # 5. Fall back to Discord client search (for partial matches)
             if self.discord_client:
                 for guild in self.discord_client.guilds:
-                    if (
-                        reference.lower() in guild.name.lower()
-                        or reference == str(guild.id)
+                    if reference.lower() in guild.name.lower() or reference == str(
+                        guild.id
                     ):
                         return Server(
                             discord_id=str(guild.id),
@@ -288,17 +284,13 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
             # 1. Try by Discord ID (if it looks like an ID)
             if reference.isdigit():
                 channel = channel_repo.get_channel_by_discord_id(reference)
-                if channel and (
-                    server_id is None or channel.server_id == server_id
-                ):
+                if channel and (server_id is None or channel.server_id == server_id):
                     return channel
 
             # 2. Try by database ID (if it's a small number)
             if reference.isdigit() and len(reference) < 10:
                 channel = channel_repo.get_channel_by_id(int(reference))
-                if channel and (
-                    server_id is None or channel.server_id == server_id
-                ):
+                if channel and (server_id is None or channel.server_id == server_id):
                     return channel
 
             # 3. Try by name
@@ -316,9 +308,7 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
                 if server_reference:
                     server = self.get_server(server_reference, context)
                     if server:
-                        guild = self.discord_client.get_guild(
-                            int(server.discord_id)
-                        )
+                        guild = self.discord_client.get_guild(int(server.discord_id))
                         if guild:
                             for channel in guild.channels:
                                 if (
@@ -331,9 +321,7 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
                                         discord_id=str(channel.id),
                                         server_id=int(server.id or 0),
                                         name=channel.name,
-                                        type=ChannelType.from_string(
-                                            str(channel.type)
-                                        ),
+                                        type=ChannelType.from_string(str(channel.type)),
                                     )
                 else:
                     # Search all servers
@@ -349,16 +337,12 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
                                     discord_id=str(channel.id),
                                     server_id=0,  # We don't have a server ID in this case
                                     name=channel.name,
-                                    type=ChannelType.from_string(
-                                        str(channel.type)
-                                    ),
+                                    type=ChannelType.from_string(str(channel.type)),
                                 )
 
             return None
         except Exception as e:
-            logger.error(
-                f"Error getting channel by reference {reference}: {e}"
-            )
+            logger.error(f"Error getting channel by reference {reference}: {e}")
             return None
 
     def get_role(
@@ -392,9 +376,7 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
             if server_reference:
                 server = self.get_server(server_reference, context)
                 if server:
-                    guild = self.discord_client.get_guild(
-                        int(server.discord_id)
-                    )
+                    guild = self.discord_client.get_guild(int(server.discord_id))
                     if guild:
                         for role in guild.roles:
                             if (
@@ -413,9 +395,8 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
                 # Search all servers
                 for guild in self.discord_client.guilds:
                     for role in guild.roles:
-                        if (
-                            reference.lower() in role.name.lower()
-                            or reference == str(role.id)
+                        if reference.lower() in role.name.lower() or reference == str(
+                            role.id
                         ):
                             return Role(
                                 discord_id=str(role.id),
@@ -450,9 +431,7 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
 
                 # Try to find by ID first
                 if server_reference.isdigit():
-                    discord_guild = self.discord_client.get_guild(
-                        int(server_reference)
-                    )
+                    discord_guild = self.discord_client.get_guild(int(server_reference))
 
                 # If not found by ID, try by name
                 if not discord_guild:
@@ -469,20 +448,17 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
 
                 # Update the registry for this server
                 return self.server_registry_service.update_server_registry(
-                    0, discord_guild  # server_id not used in the service
+                    0,
+                    discord_guild,  # server_id not used in the service
                 )
             else:
                 # Get all Discord guilds
                 discord_guilds = self.discord_client.guilds
-                logger.info(
-                    f"Updating registry for {len(discord_guilds)} guilds"
-                )
+                logger.info(f"Updating registry for {len(discord_guilds)} guilds")
 
                 # Update the registry for all servers
-                return (
-                    self.server_registry_service.update_all_server_registries(
-                        discord_guilds
-                    )
+                return self.server_registry_service.update_all_server_registries(
+                    discord_guilds
                 )
         except Exception as e:
             logger.error(f"Error updating registry: {e}")
@@ -519,9 +495,7 @@ class ServerRegistryAPIImpl(ServerRegistryAPI):
         # This is a stub implementation
         return True
 
-    def track_context(
-        self, user_id: str, entity_type: str, entity_id: int
-    ) -> bool:
+    def track_context(self, user_id: str, entity_type: str, entity_id: int) -> bool:
         """
         Track an entity in the conversation context.
 

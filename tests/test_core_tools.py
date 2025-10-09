@@ -53,9 +53,7 @@ class TestCoreTools:
     @pytest.mark.asyncio
     async def test_discord_list_servers_dry_run(self, mock_ctx, mock_config):
         """Test discord_list_servers in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_list_servers(ctx=mock_ctx)
 
             assert result is not None
@@ -69,9 +67,7 @@ class TestCoreTools:
     @pytest.mark.asyncio
     async def test_discord_list_channels_dry_run(self, mock_ctx, mock_config):
         """Test discord_list_channels in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_list_channels(
                 guild_id="123456789012345678", channel_type=None, ctx=mock_ctx
             )
@@ -88,9 +84,7 @@ class TestCoreTools:
         self, mock_ctx, mock_config
     ):
         """Test discord_list_channels with type filter in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_list_channels(
                 guild_id="123456789012345678",
                 channel_type="text",
@@ -107,13 +101,9 @@ class TestCoreTools:
                 assert channel["type"] == "text"
 
     @pytest.mark.asyncio
-    async def test_discord_get_channel_info_dry_run(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_get_channel_info_dry_run(self, mock_ctx, mock_config):
         """Test discord_get_channel_info in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_get_channel_info(
                 channel_id="345678901234567890", ctx=mock_ctx
             )
@@ -129,9 +119,7 @@ class TestCoreTools:
     @pytest.mark.asyncio
     async def test_discord_bot_status_dry_run(self, mock_ctx, mock_config):
         """Test discord_bot_status in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_bot_status(ctx=mock_ctx)
 
             assert result is not None
@@ -143,13 +131,9 @@ class TestCoreTools:
             assert result["status"] == "connected"
 
     @pytest.mark.asyncio
-    async def test_discord_get_recent_messages_dry_run(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_get_recent_messages_dry_run(self, mock_ctx, mock_config):
         """Test discord_get_recent_messages in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_get_recent_messages(
                 channel_id="345678901234567890", limit=10, ctx=mock_ctx
             )
@@ -166,9 +150,7 @@ class TestCoreTools:
     @pytest.mark.asyncio
     async def test_discord_get_message_dry_run(self, mock_ctx, mock_config):
         """Test discord_get_message in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_get_message(
                 channel_id="345678901234567890",
                 message_id="678901234567890123",
@@ -186,9 +168,7 @@ class TestCoreTools:
     @pytest.mark.asyncio
     async def test_discord_send_message_dry_run(self, mock_ctx, mock_config):
         """Test discord_send_message in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_send_message(
                 channel_id="345678901234567890",
                 content="Test message",
@@ -208,13 +188,9 @@ class TestCoreTools:
             assert result["mentions"]["replied_user"] is False
 
     @pytest.mark.asyncio
-    async def test_discord_send_message_with_reply_dry_run(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_send_message_with_reply_dry_run(self, mock_ctx, mock_config):
         """Test discord_send_message with reply in DRY_RUN mode."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_send_message(
                 channel_id="345678901234567890",
                 content="Reply message",
@@ -232,13 +208,9 @@ class TestCoreTools:
             assert result["mentions"]["everyone"] is False
 
     @pytest.mark.asyncio
-    async def test_discord_send_message_mentions_dry_run(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_send_message_mentions_dry_run(self, mock_ctx, mock_config):
         """Mentions should be appended and allowed when requested."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_send_message(
                 channel_id="345678901234567890",
                 content="Alert",
@@ -258,13 +230,9 @@ class TestCoreTools:
             assert result["mentions"]["roles"] == [987654321098765432]
 
     @pytest.mark.asyncio
-    async def test_discord_send_message_invalid_user_id(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_send_message_invalid_user_id(self, mock_ctx, mock_config):
         """Invalid mention user IDs should error early."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_send_message(
                 channel_id="345678901234567890",
                 content="Alert",
@@ -276,13 +244,9 @@ class TestCoreTools:
             assert "Invalid user ID" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_discord_send_message_invalid_role_id(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_send_message_invalid_role_id(self, mock_ctx, mock_config):
         """Invalid mention role IDs should error early."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             result = await discord_send_message(
                 channel_id="345678901234567890",
                 content="Alert",
@@ -294,13 +258,9 @@ class TestCoreTools:
             assert "Invalid role ID" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_discord_send_message_validation(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_send_message_validation(self, mock_ctx, mock_config):
         """Test discord_send_message input validation."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             # Test empty content
             result = await discord_send_message(
                 channel_id="345678901234567890", content="", ctx=mock_ctx
@@ -319,13 +279,9 @@ class TestCoreTools:
             assert "2000" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_discord_get_recent_messages_validation(
-        self, mock_ctx, mock_config
-    ):
+    async def test_discord_get_recent_messages_validation(self, mock_ctx, mock_config):
         """Test discord_get_recent_messages input validation."""
-        with patch(
-            "discord_mcp.tools.core.get_config", return_value=mock_config
-        ):
+        with patch("discord_mcp.tools.core.get_config", return_value=mock_config):
             # Test invalid limit
             result = await discord_get_recent_messages(
                 channel_id="345678901234567890", limit=0, ctx=mock_ctx

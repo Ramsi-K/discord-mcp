@@ -9,9 +9,7 @@ import logging
 from dotenv import load_dotenv
 
 # Add the parent directory to the path so we can import the restructured package
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -71,9 +69,7 @@ async def test_registry():
             logger.info(f"Testing find_server with {guild.name}")
             server = await registry.find_server(guild.name)
             if server:
-                logger.info(
-                    f"Found server: {server.name} (ID: {server.discord_id})"
-                )
+                logger.info(f"Found server: {server.name} (ID: {server.discord_id})")
             else:
                 logger.info("Server not found")
 
@@ -81,9 +77,7 @@ async def test_registry():
             if guild.channels:
                 channel = guild.channels[0]
                 logger.info(f"Testing find_channel with {channel.name}")
-                found_channel = await registry.find_channel(
-                    channel.name, guild.name
-                )
+                found_channel = await registry.find_channel(channel.name, guild.name)
                 if found_channel:
                     logger.info(
                         f"Found channel: {found_channel.name} (ID: {found_channel.discord_id})"

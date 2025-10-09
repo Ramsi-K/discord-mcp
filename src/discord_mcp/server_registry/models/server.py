@@ -129,8 +129,6 @@ class Server:
             "updated_at": self.updated_at,
             "aliases": self.aliases,
             "bot_permissions": (
-                self.bot_permissions.to_dict()
-                if self.bot_permissions
-                else None
+                self.bot_permissions.to_dict() if self.bot_permissions else None
             ),
         }

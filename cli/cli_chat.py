@@ -52,15 +52,11 @@ class CliChat(Chat):
         #     print(f"Warning: Could not get document content: {e}")
         return ""
 
-    async def get_prompt(
-        self, command: str, doc_id: str
-    ) -> list[PromptMessage]:
+    async def get_prompt(self, command: str, doc_id: str) -> list[PromptMessage]:
         # This method is from the old project and may not be applicable
         # Try to get prompt, but handle if not available
         try:
-            return await self.discord_client.get_prompt(
-                command, {"doc_id": doc_id}
-            )
+            return await self.discord_client.get_prompt(command, {"doc_id": doc_id})
         except Exception as e:
             print(f"Warning: Could not get prompt: {e}")
             return []
@@ -90,14 +86,11 @@ class CliChat(Chat):
         command = words[0].replace("/", "")
 
         try:
-
             messages = await self.discord_client.get_prompt(
                 command, {"doc_id": words[1]}
             )
 
-            self.messages += convert_prompt_messages_to_message_params(
-                messages
-            )
+            self.messages += convert_prompt_messages_to_message_params(messages)
             return True
         except Exception as e:
             print(f"Warning: Could not process command: {e}")
@@ -168,9 +161,7 @@ class CliChat(Chat):
                 # If direct method failed or not available, try using the MCP tools
                 print(f"Available clients: {list(self.clients.keys())}")
                 for client_name, client in self.clients.items():
-                    print(
-                        f"Trying client: {client_name}, type: {type(client)}"
-                    )
+                    print(f"Trying client: {client_name}, type: {type(client)}")
                     try:
                         if not hasattr(client, "list_tools"):
                             print(
@@ -181,9 +172,7 @@ class CliChat(Chat):
                         print(f"Getting tools for client {client_name}")
                         tools = await client.list_tools()
                         tool_names = [tool.name for tool in tools]
-                        print(
-                            f"Available tools for client {client_name}: {tool_names}"
-                        )
+                        print(f"Available tools for client {client_name}: {tool_names}")
 
                         if command in tool_names:
                             print(
@@ -225,16 +214,12 @@ class CliChat(Chat):
             elif command == "discord_get_channel_info" and len(words) >= 2:
                 channel_id = words[1]
 
-                print(
-                    f"Processing channel info command: channel_id={channel_id}"
-                )
+                print(f"Processing channel info command: channel_id={channel_id}")
 
                 # First try to use the direct method on the Discord bot
                 discord_bot = self.clients.get("discord_bot")
                 if discord_bot and hasattr(discord_bot, "get_channel_info"):
-                    print(
-                        f"Using direct method on Discord bot for channel info"
-                    )
+                    print(f"Using direct method on Discord bot for channel info")
                     try:
                         result = await discord_bot.get_channel_info(channel_id)
                         print(f"Direct channel info result: {result}")
@@ -288,9 +273,7 @@ class CliChat(Chat):
                         print(f"Getting tools for client {client_name}")
                         tools = await client.list_tools()
                         tool_names = [tool.name for tool in tools]
-                        print(
-                            f"Available tools for client {client_name}: {tool_names}"
-                        )
+                        print(f"Available tools for client {client_name}: {tool_names}")
 
                         if command in tool_names:
                             print(
@@ -408,6 +391,4 @@ def convert_prompt_message_to_message_param(
 def convert_prompt_messages_to_message_params(
     prompt_messages: List[PromptMessage],
 ) -> List[MessageParam]:
-    return [
-        convert_prompt_message_to_message_param(msg) for msg in prompt_messages
-    ]
+    return [convert_prompt_message_to_message_param(msg) for msg in prompt_messages]

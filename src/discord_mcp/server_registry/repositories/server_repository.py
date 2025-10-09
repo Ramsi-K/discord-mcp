@@ -64,9 +64,7 @@ class ServerRepository:
                 return self._row_to_server(results[0])
             return None
         except Exception as e:
-            logger.error(
-                f"Error getting server by Discord ID {discord_id}: {e}"
-            )
+            logger.error(f"Error getting server by Discord ID {discord_id}: {e}")
             return None
 
     def get_server_by_name(self, name: str) -> Optional[Server]:
@@ -124,9 +122,7 @@ class ServerRepository:
             List[Server]: The servers.
         """
         try:
-            results = self.db.execute_query(
-                "SELECT * FROM servers ORDER BY name"
-            )
+            results = self.db.execute_query("SELECT * FROM servers ORDER BY name")
             return [self._row_to_server(row) for row in results]
         except Exception as e:
             logger.error(f"Error getting all servers: {e}")
@@ -181,7 +177,7 @@ class ServerRepository:
         try:
             self.db.execute_update(
                 """
-                UPDATE servers 
+                UPDATE servers
                 SET name = ?, description = ?, icon_url = ?, owner_id = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """,
@@ -274,9 +270,7 @@ class ServerRepository:
 
             return True
         except Exception as e:
-            logger.error(
-                f"Error updating bot permissions for server {server_id}: {e}"
-            )
+            logger.error(f"Error updating bot permissions for server {server_id}: {e}")
             return False
 
     def _row_to_server(self, row: Dict[str, Any]) -> Server:

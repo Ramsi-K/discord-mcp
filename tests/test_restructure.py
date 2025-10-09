@@ -95,9 +95,7 @@ async def test_bot_dry_run():
         bot = DiscordMCPBot(config)
 
         # Test dry run message sending
-        result = await bot.send_direct_message(
-            "123456789", "Test message", False
-        )
+        result = await bot.send_direct_message("123456789", "Test message", False)
         assert result["success"] == True
         assert result["dry_run"] == True
         print("✅ Bot dry run message sending works")
@@ -140,14 +138,10 @@ def main():
     print(f"\n{tests_passed}/{total_tests} tests passed")
 
     if tests_passed == total_tests:
-        print(
-            "✅ All tests passed! The restructure appears to be working correctly."
-        )
+        print("✅ All tests passed! The restructure appears to be working correctly.")
         return True
     else:
-        print(
-            "❌ Some tests failed. The restructure may have broken functionality."
-        )
+        print("❌ Some tests failed. The restructure may have broken functionality.")
         return False
 
 

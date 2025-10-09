@@ -28,12 +28,8 @@ class Campaign:
             "channel_id": self.channel_id,
             "message_id": self.message_id,
             "emoji": self.emoji,
-            "remind_at": (
-                self.remind_at.isoformat() if self.remind_at else None
-            ),
-            "created_at": (
-                self.created_at.isoformat() if self.created_at else None
-            ),
+            "remind_at": (self.remind_at.isoformat() if self.remind_at else None),
+            "created_at": (self.created_at.isoformat() if self.created_at else None),
             "status": self.status,
         }
 
@@ -55,9 +51,7 @@ class OptIn:
             "campaign_id": self.campaign_id,
             "user_id": self.user_id,
             "username": self.username,
-            "tallied_at": (
-                self.tallied_at.isoformat() if self.tallied_at else None
-            ),
+            "tallied_at": (self.tallied_at.isoformat() if self.tallied_at else None),
         }
 
 
